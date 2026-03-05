@@ -101,8 +101,14 @@ function getData(key) {
 /** Write to cache AND persist to Supabase in background */
 function saveData(key, data) {
   dataCache[key] = data;
+  const userId = currentAuthUser ? currentAuthUser.id : null;
   supabaseClient.from('app_store')
-    .upsert({ key: key, value: data, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+    .upsert({
+      store_key: key,
+      data: data,
+      updated_at: new Date().toISOString(),
+      updated_by: userId
+    }, { onConflict: 'store_key' })
     .then(({ error }) => { if (error) console.error('Supabase save error:', error); });
 }
 
@@ -111,7 +117,7 @@ async function loadAllData() {
   const { data, error } = await supabaseClient.from('app_store').select('*');
   if (error) { console.error('Load error:', error); return; }
   dataCache = {};
-  if (data) data.forEach(row => { dataCache[row.key] = row.value; });
+  if (data) data.forEach(row => { dataCache[row.store_key] = row.data; });
 }
 
 function generateId() {
