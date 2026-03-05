@@ -17,7 +17,11 @@ const STORAGE_KEYS = {
   theme: 'tih_theme',
   rollout: 'rollout',
   teams: 'teams',
-  categories: 'categories'
+  categories: 'categories',
+  workbooksToday: 'workbooks_today',
+  workbooksPast: 'workbooks_past',
+  reportsPast: 'reports_past',
+  reportNotes: 'report_notes'
 };
 
 const DEFAULT_CATEGORIES = {
@@ -102,7 +106,8 @@ function refreshCategories() {
 let state = {
   currentView: 'dashboard',
   reportsViewMode: 'grid',
-  reportFilters: { search: '', categories: [], statuses: [], priority: '', userId: '', datasourceId: '' },
+  reportFilters: { search: '', categories: [], statuses: [], priority: '', userId: '', datasourceId: '', workbookId: '' },
+  reportsPastFilters: { search: '', workbookId: '' },
   selectedUserId: null,
   userTab: 'primär',
   sortColumn: null,
@@ -212,6 +217,24 @@ async function seedIfEmpty() {
   // Seed teams
   saveData(STORAGE_KEYS.teams, ['Einkauf', 'Strategischer Einkauf', 'Operativer Einkauf', 'Controlling', 'Produktmanagement']);
 
+  // Seed workbooks
+  const wbToday = [
+    { id: generateId(), name: 'Einkaufscontrolling', color: '#3B82F6', description: 'Controlling-relevante Auswertungen', created_at: now },
+    { id: generateId(), name: 'Lieferantenmanagement', color: '#A855F7', description: 'Lieferantenbezogene Reports', created_at: now },
+    { id: generateId(), name: 'Operative Beschaffung', color: '#14B8A6', description: 'Tagesgeschaeft Einkauf', created_at: now }
+  ];
+  saveData(STORAGE_KEYS.workbooksToday, wbToday);
+  reports.forEach(r => {
+    if (r.category === 'controlling' || r.category === 'angrenzende_abteilungen') r.workbook_id = wbToday[0].id;
+    else if (r.category === 'strategischer_einkauf') r.workbook_id = wbToday[1].id;
+    else r.workbook_id = wbToday[2].id;
+    r.usage_count = 0;
+  });
+
+  saveData(STORAGE_KEYS.workbooksPast, []);
+  saveData(STORAGE_KEYS.reportsPast, []);
+  saveData(STORAGE_KEYS.reportNotes, {});
+
   // Seed rollout data
   const rolloutData = {};
   reports.forEach(r => {
@@ -253,10 +276,10 @@ function navigateTo(viewName) {
   state.currentView = viewName;
   window.location.hash = viewName;
 
-  const titles = { dashboard: 'Dashboard', reports: 'Auswertungen', users: 'Nutzer', datasources: 'Datenquellen', categories: 'Kategorien', rollout: 'Rollout-Planung', consolidation: 'Konsolidierung' };
+  const titles = { dashboard: 'Dashboard', reports: 'Auswertungen Heute', reports_past: 'Auswertungen Vergangenheit', report_stats: 'Auswertungs-Statistik', users: 'Nutzer', datasources: 'Datenquellen', categories: 'Kategorien', rollout: 'Rollout-Planung', consolidation: 'Konsolidierung' };
   document.getElementById('navbar-title').textContent = titles[viewName] || viewName;
 
-  const renderers = { dashboard: renderDashboard, reports: renderReports, users: renderUsers, datasources: renderDatasources, categories: renderCategories, rollout: renderRollout, consolidation: renderConsolidation };
+  const renderers = { dashboard: renderDashboard, reports: renderReports, reports_past: renderReportsPast, report_stats: renderReportStats, users: renderUsers, datasources: renderDatasources, categories: renderCategories, rollout: renderRollout, consolidation: renderConsolidation };
   if (renderers[viewName]) renderers[viewName]();
 }
 
@@ -351,6 +374,7 @@ function renderReports() {
   const reports = getData(STORAGE_KEYS.reports) || [];
   const datasources = getData(STORAGE_KEYS.datasources) || [];
   const users = getData(STORAGE_KEYS.users) || [];
+  const workbooks = getData(STORAGE_KEYS.workbooksToday) || [];
   const f = state.reportFilters;
 
   let filtered = reports.filter(r => {
@@ -360,6 +384,7 @@ function renderReports() {
     if (f.priority && r.priority !== f.priority) return false;
     if (f.userId && !(r.user_assignments || []).some(a => a.user_id === f.userId)) return false;
     if (f.datasourceId && !(r.data_source_ids || []).includes(f.datasourceId)) return false;
+    if (f.workbookId && r.workbook_id !== f.workbookId) return false;
     return true;
   });
 
@@ -374,7 +399,12 @@ function renderReports() {
 
   const el = document.getElementById('reports-content');
   el.innerHTML = `
-    <div class="view-header"><h1 class="view-title">Auswertungen</h1><p class="view-subtitle">${reports.length} Auswertungen insgesamt</p></div>
+    <div class="view-header"><h1 class="view-title">Auswertungen Heute</h1><p class="view-subtitle">${reports.length} Auswertungen insgesamt</p></div>
+    <div class="workbook-pills">
+      <button class="workbook-pill ${!f.workbookId ? 'active' : ''}" data-wb="" type="button">Alle</button>
+      ${workbooks.map(wb => `<button class="workbook-pill ${f.workbookId === wb.id ? 'active' : ''}" data-wb="${wb.id}" type="button" style="border-color:${f.workbookId === wb.id ? wb.color : ''}"><span class="workbook-pill-dot" style="background:${wb.color}"></span>${wb.name}<span class="workbook-pill-count">${reports.filter(r => r.workbook_id === wb.id).length}</span></button>`).join('')}
+      <button class="btn btn-ghost btn-sm" id="btn-new-workbook-today" type="button">+ Workbook</button>
+    </div>
     <div class="filter-bar">
       <div class="filter-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="report-search" placeholder="Suchen\u2026" value="${f.search}"></div>
       <div class="filter-dropdown" id="filter-cat-dd"><button class="filter-dropdown-btn ${f.categories.length ? 'has-selection' : ''}" type="button">Kategorie ${f.categories.length ? `(${f.categories.length})` : ''} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="filter-dropdown-menu" id="filter-cat-menu">${Object.entries(CATEGORIES).map(([k, v]) => `<label class="filter-dropdown-item ${f.categories.includes(k) ? 'selected' : ''}"><input type="checkbox" value="${k}" ${f.categories.includes(k) ? 'checked' : ''}>${v.label}</label>`).join('')}</div></div>
@@ -387,6 +417,14 @@ function renderReports() {
       </div>
     </div>
     <div id="reports-list">${filtered.length === 0 ? renderEmptyState() : (state.reportsViewMode === 'grid' ? renderGrid(filtered, users) : renderTable(filtered, users))}</div>`;
+
+  // Workbook pill events
+  el.querySelectorAll('.workbook-pill').forEach(p => p.addEventListener('click', () => { state.reportFilters.workbookId = p.dataset.wb; renderReports(); }));
+  const newWbBtn = el.querySelector('#btn-new-workbook-today');
+  if (newWbBtn) newWbBtn.addEventListener('click', () => showWorkbookModal(STORAGE_KEYS.workbooksToday, null, renderReports));
+
+  // Archive buttons (table view)
+  el.querySelectorAll('.table-action-btn[data-action="archive"]').forEach(b => b.addEventListener('click', () => archiveReport(b.dataset.id)));
 
   // Events
   document.getElementById('report-search').addEventListener('input', e => { state.reportFilters.search = e.target.value; renderReports(); });
@@ -429,6 +467,8 @@ function renderReportCard(r, users) {
   const dsC = (r.data_source_ids || []).length;
   const hasUrl = r.tableau_url && r.tableau_url.trim();
   const hasJira = r.jira_ticket && r.jira_ticket.trim();
+  const rNotes = getData(STORAGE_KEYS.reportNotes) || {};
+  const hasNote = rNotes[r.id] && rNotes[r.id].trim();
   return `<div class="report-card" data-id="${r.id}" style="border-left-color:${getCatColor(r.category)}">
     <div class="report-card-actions-top">
       ${hasUrl ? `<a class="report-card-action-btn tableau-link-btn" href="${r.tableau_url}" target="_blank" rel="noopener" title="In Tableau öffnen" onclick="event.stopPropagation()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ''}
@@ -443,6 +483,8 @@ function renderReportCard(r, users) {
       <span class="badge ${STATUSES[r.status]?.css || ''}">${STATUSES[r.status]?.label || r.status}</span>
       <span class="priority-dot ${PRIORITIES[r.priority]?.dot || ''}"></span>
       ${dsC ? `<span class="ds-count-pill">\uD83D\uDDC4\uFE0F ${dsC}</span>` : ''}
+      ${hasNote ? '<span class="notes-indicator" title="Notizen vorhanden">\uD83D\uDCDD</span>' : ''}
+      ${(r.usage_count || 0) > 0 ? `<span class="usage-badge">${r.usage_count}</span>` : ''}
       <div class="completeness-dots">${[1,2,3,4,5].map(i => `<div class="completeness-dot ${i <= comp ? 'filled' : ''}"></div>`).join('')}</div>
       ${assigned.length ? `<div class="report-card-avatars">${assigned.slice(0, 3).map(u => `<div class="avatar-circle" style="background:${ROLES[u.role]?.color || '#64748B'}" title="${u.name}">${getInitials(u.name)}</div>`).join('')}${assigned.length > 3 ? `<div class="avatar-circle" style="background:var(--card2)">+${assigned.length - 3}</div>` : ''}</div>` : ''}
     </div></div>`;
@@ -451,19 +493,21 @@ function renderReportCard(r, users) {
 function renderTable(reports, users) {
   const arrow = c => state.sortColumn === c ? `<span class="sort-arrow">${state.sortDir === 'asc' ? '\u2191' : '\u2193'}</span>` : '<span class="sort-arrow">\u2195</span>';
   const sorted = c => state.sortColumn === c ? 'sorted' : '';
+  const workbooks = getData(STORAGE_KEYS.workbooksToday) || [];
   return `<div class="table-wrap"><table class="table"><thead><tr>
     <th>JIRA</th>
     <th data-sort="title" class="${sorted('title')}">Titel ${arrow('title')}</th>
+    <th>Workbook</th>
     <th data-sort="category" class="${sorted('category')}">Kategorie ${arrow('category')}</th>
     <th data-sort="status" class="${sorted('status')}">Status ${arrow('status')}</th>
-    <th data-sort="priority" class="${sorted('priority')}">Priorität ${arrow('priority')}</th>
-    <th>Quellen</th><th>Nutzer</th><th>Score</th><th>Tableau</th><th>Aktionen</th>
+    <th data-sort="priority" class="${sorted('priority')}">Priorit\u00E4t ${arrow('priority')}</th>
+    <th>Aufrufe</th><th>Quellen</th><th>Score</th><th>Aktionen</th>
   </tr></thead><tbody>${reports.map(r => {
     const au = (r.user_assignments || []).map(a => users.find(u => u.id === a.user_id)).filter(Boolean);
     const comp = getCompleteness(r);
-    const hasUrl = r.tableau_url && r.tableau_url.trim();
     const hasJira = r.jira_ticket && r.jira_ticket.trim();
-    return `<tr><td>${hasJira ? `<a class="jira-badge jira-badge-table" href="${r.jira_url || '#'}" target="_blank" rel="noopener">${r.jira_ticket}</a>` : '<span style="color:var(--muted)">–</span>'}</td><td><strong>${r.title}</strong></td><td style="color:${getCatColor(r.category)}">${CATEGORIES[r.category]?.label || r.category}</td><td><span class="badge ${STATUSES[r.status]?.css || ''}">${STATUSES[r.status]?.label || ''}</span></td><td><span class="priority-dot ${PRIORITIES[r.priority]?.dot || ''}" style="display:inline-block"></span> ${PRIORITIES[r.priority]?.label || ''}</td><td>${(r.data_source_ids || []).length}</td><td><div style="display:flex">${au.slice(0,3).map(u => `<div class="avatar-circle" style="background:${ROLES[u.role]?.color || '#64748B'};width:24px;height:24px;font-size:10px" title="${u.name}">${getInitials(u.name)}</div>`).join('')}</div></td><td><div class="completeness-dots">${[1,2,3,4,5].map(i => `<div class="completeness-dot ${i <= comp ? 'filled' : ''}"></div>`).join('')}</div></td><td>${hasUrl ? `<a class="table-action-btn tableau-link-btn" href="${r.tableau_url}" target="_blank" rel="noopener" title="In Tableau öffnen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : '<span style="color:var(--muted)">–</span>'}</td><td><div class="table-actions" style="position:relative"><button class="table-action-btn" data-action="pdf" data-id="${r.id}" type="button" title="Stammblatt PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></button><button class="table-action-btn" data-action="edit" data-id="${r.id}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="table-action-btn danger" data-action="delete" data-id="${r.id}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`;
+    const wb = workbooks.find(w => w.id === r.workbook_id);
+    return `<tr><td>${hasJira ? `<a class="jira-badge jira-badge-table" href="${r.jira_url || '#'}" target="_blank" rel="noopener">${r.jira_ticket}</a>` : '<span style="color:var(--muted)">\u2013</span>'}</td><td><strong>${r.title}</strong></td><td>${wb ? `<span style="color:${wb.color};font-size:12px;font-weight:600">${wb.name}</span>` : '<span style="color:var(--muted)">\u2013</span>'}</td><td style="color:${getCatColor(r.category)}">${CATEGORIES[r.category]?.label || r.category}</td><td><span class="badge ${STATUSES[r.status]?.css || ''}">${STATUSES[r.status]?.label || ''}</span></td><td><span class="priority-dot ${PRIORITIES[r.priority]?.dot || ''}" style="display:inline-block"></span> ${PRIORITIES[r.priority]?.label || ''}</td><td><span class="usage-badge">${r.usage_count || 0}</span></td><td>${(r.data_source_ids || []).length}</td><td><div class="completeness-dots">${[1,2,3,4,5].map(i => `<div class="completeness-dot ${i <= comp ? 'filled' : ''}"></div>`).join('')}</div></td><td><div class="table-actions" style="position:relative"><button class="table-action-btn" data-action="pdf" data-id="${r.id}" type="button" title="Stammblatt PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></button><button class="table-action-btn" data-action="edit" data-id="${r.id}" type="button" title="Bearbeiten"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="table-action-btn" data-action="archive" data-id="${r.id}" type="button" title="Archivieren"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></button><button class="table-action-btn danger" data-action="delete" data-id="${r.id}" type="button" title="L\u00F6schen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`;
   }).join('')}</tbody></table></div>`;
 }
 
@@ -776,9 +820,14 @@ function openReportModal(reportId) {
   const datasources = getData(STORAGE_KEYS.datasources) || [];
   const users = getData(STORAGE_KEYS.users) || [];
   const isEdit = !!reportId;
-  const report = isEdit ? { ...reports.find(r => r.id === reportId) } : { id: '', title: '', description: '', category: 'operativer_einkauf', status: 'idee', priority: 'mittel', refresh_cycle: '', tableau_url: '', jira_ticket: '', jira_url: '', data_source_ids: [], user_assignments: [], use_cases: [] };
+  const workbooks = getData(STORAGE_KEYS.workbooksToday) || [];
+  const reportNotes = getData(STORAGE_KEYS.reportNotes) || {};
+  const report = isEdit ? { ...reports.find(r => r.id === reportId) } : { id: '', title: '', description: '', category: 'operativer_einkauf', status: 'idee', priority: 'mittel', refresh_cycle: '', tableau_url: '', jira_ticket: '', jira_url: '', data_source_ids: [], user_assignments: [], use_cases: [], workbook_id: '', usage_count: 0 };
   if (isEdit && !report.jira_ticket) report.jira_ticket = '';
   if (isEdit && !report.jira_url) report.jira_url = '';
+  if (isEdit && !report.workbook_id) report.workbook_id = '';
+  if (isEdit && !report.usage_count) report.usage_count = 0;
+  let mNotes = isEdit ? (reportNotes[reportId] || '') : '';
   if (!report || (!isEdit && report === undefined)) return;
 
   let tab = 0;
@@ -791,7 +840,7 @@ function openReportModal(reportId) {
     const comp = getCompleteness({ ...report, data_source_ids: mDs, user_assignments: mUa, use_cases: mUc });
 
     m.innerHTML = `<div class="modal-header"><div class="modal-title">${isEdit ? report.title : 'Neue Auswertung'}</div><button class="modal-close" id="mc" type="button">\u00D7</button></div>
-    <div class="modal-tabs">${['Grunddaten', 'Datenquellen', 'Nutzer & Relevanz', 'Use Cases', 'Vorschau'].map((t, i) => `<div class="modal-tab ${tab === i ? 'active' : ''}" data-tab="${i}">${t}</div>`).join('')}</div>
+    <div class="modal-tabs">${['Grunddaten', 'Datenquellen', 'Nutzer & Relevanz', 'Use Cases', 'Notizen', 'Vorschau'].map((t, i) => `<div class="modal-tab ${tab === i ? 'active' : ''}" data-tab="${i}">${t}</div>`).join('')}</div>
     <div class="modal-body">
       <div class="modal-tab-content ${tab === 0 ? 'active' : ''}">
         <div class="form-group"><label class="form-label">Titel *</label><input class="form-input" id="mt" value="${report.title}" placeholder="Auswertungstitel"></div>
@@ -800,11 +849,13 @@ function openReportModal(reportId) {
         <div class="form-row"><div class="form-group"><label class="form-label">Priorität</label><div class="priority-toggle">${Object.entries(PRIORITIES).map(([k, v]) => `<button class="priority-btn ${k} ${report.priority === k ? 'active' : ''}" data-p="${k}" type="button">${v.label}</button>`).join('')}</div></div><div class="form-group"><label class="form-label">Aktualisierungszyklus</label><input class="form-input" id="mref" value="${report.refresh_cycle || ''}" placeholder="z.B. täglich, wöchentlich"></div></div>
         <div class="form-group"><label class="form-label">Tableau URL</label><input class="form-input" id="mturl" value="${report.tableau_url || ''}" placeholder="https://tableau.haecker.com/..."></div>
         <div class="form-row"><div class="form-group"><label class="form-label">JIRA Ticketnummer</label><input class="form-input" id="mjira" value="${report.jira_ticket || ''}" placeholder="z.B. EINK-1234"></div><div class="form-group"><label class="form-label">JIRA Link</label><input class="form-input" id="mjiraurl" value="${report.jira_url || ''}" placeholder="https://jira.haecker.com/browse/EINK-1234"></div></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Workbook</label><select class="form-select" id="mwb"><option value="">-- Kein Workbook --</option>${workbooks.map(w => `<option value="${w.id}" ${report.workbook_id === w.id ? 'selected' : ''}>${w.name}</option>`).join('')}</select></div><div class="form-group"><label class="form-label">Aufrufe (manuell)</label><input class="form-input" id="musage" type="number" min="0" value="${report.usage_count || 0}"></div></div>
       </div>
       <div class="modal-tab-content ${tab === 1 ? 'active' : ''}">${mDs.length ? `<div class="selected-tags">${mDs.map(did => { const d = datasources.find(x => x.id === did); return d ? `<span class="selected-tag">${DS_TYPES[d.type]?.icon || ''} ${d.name} <span class="selected-tag-remove" data-rm-ds="${d.id}">\u00D7</span></span>` : ''; }).join('')}</div>` : ''}<div class="ds-checklist">${datasources.map(d => `<label class="ds-check-item ${mDs.includes(d.id) ? 'checked' : ''}"><input type="checkbox" value="${d.id}" ${mDs.includes(d.id) ? 'checked' : ''}><span class="ds-type-icon">${DS_TYPES[d.type]?.icon || ''}</span><span class="ds-check-name">${d.name}</span><span class="ds-check-owner">${d.owner || ''}</span></label>`).join('')}</div></div>
       <div class="modal-tab-content ${tab === 2 ? 'active' : ''}"><div class="user-assign-list">${users.map(u => { const a = mUa.find(x => x.user_id === u.id); const ch = !!a; const rel = a ? a.relevance : 'primär'; return `<div class="user-assign-item ${ch ? 'checked' : ''}" data-uid="${u.id}"><input type="checkbox" value="${u.id}" ${ch ? 'checked' : ''} style="appearance:none;-webkit-appearance:none;width:18px;height:18px;border:2px solid var(--muted);border-radius:5px;flex-shrink:0;cursor:pointer;position:relative;${ch ? 'background:var(--accent);border-color:var(--accent)' : ''}"><div class="avatar-circle" style="background:${ROLES[u.role]?.color || '#64748B'};width:32px;height:32px;font-size:12px">${getInitials(u.name)}</div><span class="user-assign-name">${u.name}</span><span class="user-assign-role">${ROLES[u.role]?.label || ''}</span>${ch ? `<div class="relevance-toggle" data-uid="${u.id}">${['primär', 'sekundär', 'info'].map(r => `<button class="relevance-btn ${rel === r ? 'active' : ''}" data-rel="${r}" type="button">${r[0].toUpperCase() + r.slice(1)}</button>`).join('')}</div>` : ''}</div>`; }).join('')}</div></div>
       <div class="modal-tab-content ${tab === 3 ? 'active' : ''}"><div class="use-case-list">${mUc.map((uc, i) => `<div class="use-case-row" data-idx="${i}"><button class="use-case-remove" data-rm-uc="${i}" type="button">\u00D7</button><div class="form-group"><label class="form-label">Titel</label><input class="form-input uc-t" value="${uc.title || ''}"></div><div class="form-group"><label class="form-label">Fragestellung</label><input class="form-input uc-q" value="${uc.question || ''}"></div><div class="form-group"><label class="form-label">Beschreibung</label><textarea class="form-input uc-d" rows="2">${uc.description || ''}</textarea></div></div>`).join('')}</div><button class="btn btn-ghost btn-sm" id="btn-add-uc" type="button" style="margin-top:12px">+ Use Case</button></div>
-      <div class="modal-tab-content ${tab === 4 ? 'active' : ''}"><div class="preview-section"><div class="preview-section-title">Grunddaten</div><div class="preview-field"><span class="preview-field-label">Titel:</span><span class="preview-field-value">${report.title || '\u2013'}</span></div><div class="preview-field"><span class="preview-field-label">Kategorie:</span><span class="preview-field-value">${CATEGORIES[report.category]?.label || ''}</span></div><div class="preview-field"><span class="preview-field-label">Status:</span><span class="preview-field-value">${STATUSES[report.status]?.label || ''}</span></div></div><div class="preview-section"><div class="preview-section-title">Vollständigkeit</div><div class="completeness-score-big">${comp} / 5</div><div class="completeness-checklist"><div class="completeness-item"><span class="completeness-icon">${report.description?.trim() ? '\u2705' : '\u274C'}</span> Beschreibung</div><div class="completeness-item"><span class="completeness-icon">${mDs.length ? '\u2705' : '\u274C'}</span> Datenquellen (${mDs.length})</div><div class="completeness-item"><span class="completeness-icon">${mUa.length ? '\u2705' : '\u274C'}</span> Nutzer (${mUa.length})</div><div class="completeness-item"><span class="completeness-icon">${mUc.length ? '\u2705' : '\u274C'}</span> Use Cases (${mUc.length})</div><div class="completeness-item"><span class="completeness-icon">${report.refresh_cycle?.trim() ? '\u2705' : '\u274C'}</span> Refresh</div></div></div></div>
+      <div class="modal-tab-content ${tab === 4 ? 'active' : ''}"><div class="form-group"><label class="form-label">Notizen zu dieser Auswertung</label><textarea class="form-input" id="m-notes" rows="8" placeholder="Notizen, Anmerkungen, Kontext\u2026">${mNotes}</textarea></div></div>
+      <div class="modal-tab-content ${tab === 5 ? 'active' : ''}"><div class="preview-section"><div class="preview-section-title">Grunddaten</div><div class="preview-field"><span class="preview-field-label">Titel:</span><span class="preview-field-value">${report.title || '\u2013'}</span></div><div class="preview-field"><span class="preview-field-label">Kategorie:</span><span class="preview-field-value">${CATEGORIES[report.category]?.label || ''}</span></div><div class="preview-field"><span class="preview-field-label">Status:</span><span class="preview-field-value">${STATUSES[report.status]?.label || ''}</span></div></div><div class="preview-section"><div class="preview-section-title">Vollständigkeit</div><div class="completeness-score-big">${comp} / 5</div><div class="completeness-checklist"><div class="completeness-item"><span class="completeness-icon">${report.description?.trim() ? '\u2705' : '\u274C'}</span> Beschreibung</div><div class="completeness-item"><span class="completeness-icon">${mDs.length ? '\u2705' : '\u274C'}</span> Datenquellen (${mDs.length})</div><div class="completeness-item"><span class="completeness-icon">${mUa.length ? '\u2705' : '\u274C'}</span> Nutzer (${mUa.length})</div><div class="completeness-item"><span class="completeness-icon">${mUc.length ? '\u2705' : '\u274C'}</span> Use Cases (${mUc.length})</div><div class="completeness-item"><span class="completeness-icon">${report.refresh_cycle?.trim() ? '\u2705' : '\u274C'}</span> Refresh</div></div></div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" id="mcx" type="button">Abbrechen</button><button class="btn btn-primary" id="msv" type="button">Speichern</button></div>`;
 
@@ -826,20 +877,25 @@ function openReportModal(reportId) {
       if (!title) { showToast('Titel erforderlich', 'warning'); return; }
       const allR = getData(STORAGE_KEYS.reports) || [];
       const now = new Date().toISOString();
-      const data = { title, description: report.description, category: report.category, status: report.status, priority: report.priority, refresh_cycle: report.refresh_cycle, tableau_url: report.tableau_url || '', jira_ticket: report.jira_ticket || '', jira_url: report.jira_url || '', data_source_ids: mDs, user_assignments: mUa, use_cases: mUc, updated_at: now };
-      if (isEdit) { const idx = allR.findIndex(r => r.id === reportId); if (idx !== -1) allR[idx] = { ...allR[idx], ...data }; }
-      else allR.push({ id: generateId(), ...data, created_at: now });
+      const data = { title, description: report.description, category: report.category, status: report.status, priority: report.priority, refresh_cycle: report.refresh_cycle, tableau_url: report.tableau_url || '', jira_ticket: report.jira_ticket || '', jira_url: report.jira_url || '', data_source_ids: mDs, user_assignments: mUa, use_cases: mUc, workbook_id: report.workbook_id || '', usage_count: report.usage_count || 0, updated_at: now };
+      let savedId;
+      if (isEdit) { const idx = allR.findIndex(r => r.id === reportId); if (idx !== -1) allR[idx] = { ...allR[idx], ...data }; savedId = reportId; }
+      else { savedId = generateId(); allR.push({ id: savedId, ...data, created_at: now }); }
       saveData(STORAGE_KEYS.reports, allR);
+      // Save notes
+      const allNotes = getData(STORAGE_KEYS.reportNotes) || {};
+      allNotes[savedId] = mNotes;
+      saveData(STORAGE_KEYS.reportNotes, allNotes);
       closeModal(); updateProgressPill();
-      const renderers = { dashboard: renderDashboard, reports: renderReports, users: renderUsers, datasources: renderDatasources, categories: renderCategories, rollout: renderRollout, consolidation: renderConsolidation };
+      const renderers = { dashboard: renderDashboard, reports: renderReports, reports_past: renderReportsPast, report_stats: renderReportStats, users: renderUsers, datasources: renderDatasources, categories: renderCategories, rollout: renderRollout, consolidation: renderConsolidation };
       if (renderers[state.currentView]) renderers[state.currentView]();
       showToast(isEdit ? 'Aktualisiert' : 'Erstellt', 'success');
     });
   }
 
   function collect() {
-    const t = document.getElementById('mt'), d = document.getElementById('md'), c = document.getElementById('mcat'), s = document.getElementById('mstat'), r = document.getElementById('mref'), tu = document.getElementById('mturl'), jt = document.getElementById('mjira'), ju = document.getElementById('mjiraurl');
-    if (t) report.title = t.value; if (d) report.description = d.value; if (c) report.category = c.value; if (s) report.status = s.value; if (r) report.refresh_cycle = r.value; if (tu) report.tableau_url = tu.value; if (jt) report.jira_ticket = jt.value; if (ju) report.jira_url = ju.value;
+    const t = document.getElementById('mt'), d = document.getElementById('md'), c = document.getElementById('mcat'), s = document.getElementById('mstat'), r = document.getElementById('mref'), tu = document.getElementById('mturl'), jt = document.getElementById('mjira'), ju = document.getElementById('mjiraurl'), wb = document.getElementById('mwb'), us = document.getElementById('musage'), nt = document.getElementById('m-notes');
+    if (t) report.title = t.value; if (d) report.description = d.value; if (c) report.category = c.value; if (s) report.status = s.value; if (r) report.refresh_cycle = r.value; if (tu) report.tableau_url = tu.value; if (jt) report.jira_ticket = jt.value; if (ju) report.jira_url = ju.value; if (wb) report.workbook_id = wb.value; if (us) report.usage_count = parseInt(us.value) || 0; if (nt) mNotes = nt.value;
   }
   function collectUc() {
     document.querySelectorAll('.use-case-row').forEach((row, i) => {
@@ -1106,7 +1162,16 @@ function generateReportPdf(reportId) {
     doc.text('Haecker Kuechen - Tableau Intelligence Hub - Stammblatt - ' + new Date().toLocaleString('de-DE'), pageW / 2, y, { align: 'center' });
 
     const fileName = 'Stammblatt_' + sanitizePdf(r.title || 'Report').replace(/\s+/g, '_').substring(0, 40) + '_' + new Date().toISOString().split('T')[0] + '.pdf';
-    doc.save(fileName);
+    // Use Blob approach for reliable cross-browser download
+    const pdfBlob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = blobUrl;
+    downloadLink.download = fileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
     showToast('Stammblatt heruntergeladen', 'success');
 
   } catch (err) {
@@ -1499,6 +1564,295 @@ function bindTeamEvents(el) {
   });
 }
 
+/* === WORKBOOK MODAL === */
+
+function showWorkbookModal(storageKey, workbookId, onSaveCallback) {
+  const workbooks = getData(storageKey) || [];
+  const isEdit = !!workbookId;
+  const wb = isEdit ? workbooks.find(w => w.id === workbookId) : { id: '', name: '', color: '#3B82F6', description: '' };
+  if (!wb) return;
+
+  const m = document.getElementById('modal-container');
+  m.innerHTML = `<div class="modal-header"><div class="modal-title">${isEdit ? 'Workbook bearbeiten' : 'Neues Workbook'}</div><button class="modal-close" id="wb-modal-close" type="button">\u00D7</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="wb-name" value="${wb.name}" placeholder="Workbook-Name"></div>
+    <div class="form-group"><label class="form-label">Beschreibung</label><textarea class="form-input" id="wb-desc" rows="2" placeholder="Kurzbeschreibung\u2026">${wb.description || ''}</textarea></div>
+    <div class="form-group"><label class="form-label">Farbe</label><div class="color-picker" id="wb-color-picker">${CATEGORY_COLORS.map(c => `<button class="color-pick-btn ${wb.color === c ? 'active' : ''}" data-color="${c}" type="button" style="background:${c}"></button>`).join('')}</div><input type="hidden" id="wb-color" value="${wb.color}"></div>
+  </div>
+  <div class="modal-footer">
+    ${isEdit ? '<button class="btn btn-danger" id="wb-delete" type="button">L\u00F6schen</button>' : ''}
+    <button class="btn btn-ghost" id="wb-cancel" type="button">Abbrechen</button>
+    <button class="btn btn-primary" id="wb-save" type="button">Speichern</button>
+  </div>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+
+  m.querySelectorAll('.color-pick-btn').forEach(b => b.addEventListener('click', () => { m.querySelectorAll('.color-pick-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); document.getElementById('wb-color').value = b.dataset.color; }));
+  m.querySelector('#wb-modal-close').addEventListener('click', closeModal);
+  m.querySelector('#wb-cancel').addEventListener('click', closeModal);
+
+  m.querySelector('#wb-save').addEventListener('click', () => {
+    const name = document.getElementById('wb-name').value.trim();
+    if (!name) { showToast('Name ist erforderlich', 'warning'); return; }
+    const all = getData(storageKey) || [];
+    const now = new Date().toISOString();
+    if (isEdit) {
+      const idx = all.findIndex(w => w.id === workbookId);
+      if (idx !== -1) { all[idx].name = name; all[idx].description = document.getElementById('wb-desc').value.trim(); all[idx].color = document.getElementById('wb-color').value; }
+    } else {
+      all.push({ id: generateId(), name, color: document.getElementById('wb-color').value, description: document.getElementById('wb-desc').value.trim(), created_at: now });
+    }
+    saveData(storageKey, all);
+    closeModal();
+    showToast(isEdit ? 'Workbook aktualisiert' : 'Workbook erstellt', 'success');
+    if (onSaveCallback) onSaveCallback();
+  });
+
+  const delBtn = m.querySelector('#wb-delete');
+  if (delBtn) delBtn.addEventListener('click', () => {
+    if (!confirm('Workbook wirklich l\u00F6schen? Auswertungen verlieren ihre Zuordnung.')) return;
+    let all = getData(storageKey) || [];
+    all = all.filter(w => w.id !== workbookId);
+    saveData(storageKey, all);
+    closeModal();
+    showToast('Workbook gel\u00F6scht', 'success');
+    if (onSaveCallback) onSaveCallback();
+  });
+}
+
+/* === ARCHIVE / REACTIVATE === */
+
+function archiveReport(reportId) {
+  const reports = getData(STORAGE_KEYS.reports) || [];
+  const idx = reports.findIndex(r => r.id === reportId);
+  if (idx === -1) return;
+  const report = reports.splice(idx, 1)[0];
+  saveData(STORAGE_KEYS.reports, reports);
+
+  // Convert to past report
+  const past = getData(STORAGE_KEYS.reportsPast) || [];
+  report.archived_at = new Date().toISOString();
+  report.usage_count = report.usage_count || 0;
+  // Try to find matching past workbook or clear
+  const wbToday = getData(STORAGE_KEYS.workbooksToday) || [];
+  const wbPast = getData(STORAGE_KEYS.workbooksPast) || [];
+  const origWb = wbToday.find(w => w.id === report.workbook_id);
+  if (origWb) {
+    let pastWb = wbPast.find(w => w.name === origWb.name);
+    if (!pastWb) { pastWb = { ...origWb, id: generateId(), created_at: new Date().toISOString() }; wbPast.push(pastWb); saveData(STORAGE_KEYS.workbooksPast, wbPast); }
+    report.workbook_id = pastWb.id;
+  } else {
+    report.workbook_id = '';
+  }
+  past.push(report);
+  saveData(STORAGE_KEYS.reportsPast, past);
+  updateProgressPill();
+  showToast('Archiviert', 'success');
+  const renderers = { dashboard: renderDashboard, reports: renderReports, report_stats: renderReportStats };
+  if (renderers[state.currentView]) renderers[state.currentView]();
+}
+
+function reactivateReport(reportId) {
+  const past = getData(STORAGE_KEYS.reportsPast) || [];
+  const idx = past.findIndex(r => r.id === reportId);
+  if (idx === -1) return;
+  const report = past.splice(idx, 1)[0];
+  saveData(STORAGE_KEYS.reportsPast, past);
+
+  delete report.archived_at;
+  // Try to map workbook back
+  const wbPast = getData(STORAGE_KEYS.workbooksPast) || [];
+  const wbToday = getData(STORAGE_KEYS.workbooksToday) || [];
+  const origWb = wbPast.find(w => w.id === report.workbook_id);
+  if (origWb) {
+    let todayWb = wbToday.find(w => w.name === origWb.name);
+    if (todayWb) report.workbook_id = todayWb.id;
+    else report.workbook_id = '';
+  } else {
+    report.workbook_id = '';
+  }
+  const reports = getData(STORAGE_KEYS.reports) || [];
+  reports.push(report);
+  saveData(STORAGE_KEYS.reports, reports);
+  updateProgressPill();
+  showToast('Reaktiviert', 'success');
+  const renderers = { reports_past: renderReportsPast, report_stats: renderReportStats };
+  if (renderers[state.currentView]) renderers[state.currentView]();
+}
+
+/* === RENDER: REPORTS PAST === */
+
+function renderReportsPast() {
+  const pastReports = getData(STORAGE_KEYS.reportsPast) || [];
+  const workbooks = getData(STORAGE_KEYS.workbooksPast) || [];
+  const notes = getData(STORAGE_KEYS.reportNotes) || {};
+  const f = state.reportsPastFilters;
+
+  let filtered = pastReports.filter(r => {
+    if (f.search && !r.title.toLowerCase().includes(f.search.toLowerCase()) && !(r.description || '').toLowerCase().includes(f.search.toLowerCase())) return false;
+    if (f.workbookId && r.workbook_id !== f.workbookId) return false;
+    return true;
+  });
+
+  const el = document.getElementById('reports_past-content');
+  el.innerHTML = `
+    <div class="view-header"><h1 class="view-title">Auswertungen Vergangenheit</h1><p class="view-subtitle">${pastReports.length} archivierte Auswertungen</p></div>
+    <div class="workbook-pills">
+      <button class="workbook-pill ${!f.workbookId ? 'active' : ''}" data-wb="" type="button">Alle</button>
+      ${workbooks.map(wb => `<button class="workbook-pill ${f.workbookId === wb.id ? 'active' : ''}" data-wb="${wb.id}" type="button" style="border-color:${f.workbookId === wb.id ? wb.color : ''}"><span class="workbook-pill-dot" style="background:${wb.color}"></span>${wb.name}<span class="workbook-pill-count">${pastReports.filter(r => r.workbook_id === wb.id).length}</span></button>`).join('')}
+      <button class="btn btn-ghost btn-sm" id="btn-new-workbook-past" type="button">+ Workbook</button>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="past-search" placeholder="Suchen\u2026" value="${f.search}"></div>
+      <button class="btn btn-primary btn-sm" id="btn-add-past-report" type="button">+ Auswertung hinzuf\u00FCgen</button>
+    </div>
+    <div id="past-reports-list">
+    ${workbooks.length === 0 && filtered.length === 0 ? '<div class="empty-state"><div class="empty-state-title">Noch keine archivierten Auswertungen</div><div class="empty-state-text">Archivieren Sie Auswertungen aus "Heute" oder legen Sie hier neue an.</div></div>' : ''}
+    ${workbooks.map(wb => {
+      const wbReports = filtered.filter(r => r.workbook_id === wb.id);
+      if (f.workbookId && f.workbookId !== wb.id) return '';
+      return `<div class="category-section" data-wb="${wb.id}">
+        <div class="category-header">
+          <div class="category-color-bar" style="background:${wb.color}"></div>
+          <span class="category-name">${wb.name}</span>
+          <span class="category-count">${wbReports.length} Auswertungen</span>
+          <div class="category-actions-inline">
+            <button class="btn-icon-sm wb-edit-btn" data-wb-id="${wb.id}" type="button" title="Bearbeiten"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+          <svg class="category-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="category-body">${wbReports.length ? `<div class="card-grid">${wbReports.map(r => renderPastReportCard(r, wb, notes)).join('')}</div>` : '<div class="empty-state" style="padding:30px"><div class="empty-state-title">Keine Auswertungen in diesem Workbook</div></div>'}</div>
+      </div>`;
+    }).join('')}
+    ${(() => { const unassigned = filtered.filter(r => !r.workbook_id || !workbooks.find(w => w.id === r.workbook_id)); return unassigned.length ? `<div class="category-section"><div class="category-header"><div class="category-color-bar" style="background:var(--muted)"></div><span class="category-name">Ohne Workbook</span><span class="category-count">${unassigned.length}</span><svg class="category-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="category-body"><div class="card-grid">${unassigned.map(r => renderPastReportCard(r, null, notes)).join('')}</div></div></div>` : ''; })()}
+    </div>`;
+
+  // Events
+  el.querySelectorAll('.workbook-pill').forEach(p => p.addEventListener('click', () => { state.reportsPastFilters.workbookId = p.dataset.wb; renderReportsPast(); }));
+  const newWbBtn = el.querySelector('#btn-new-workbook-past');
+  if (newWbBtn) newWbBtn.addEventListener('click', () => showWorkbookModal(STORAGE_KEYS.workbooksPast, null, renderReportsPast));
+  el.querySelectorAll('.wb-edit-btn').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); showWorkbookModal(STORAGE_KEYS.workbooksPast, b.dataset.wbId, renderReportsPast); }));
+
+  const searchInp = el.querySelector('#past-search');
+  if (searchInp) searchInp.addEventListener('input', e => { state.reportsPastFilters.search = e.target.value; renderReportsPast(); });
+
+  const addBtn = el.querySelector('#btn-add-past-report');
+  if (addBtn) addBtn.addEventListener('click', () => openPastReportModal(null));
+
+  el.querySelectorAll('.category-header').forEach(h => h.addEventListener('click', (e) => { if (e.target.closest('.wb-edit-btn')) return; h.closest('.category-section').classList.toggle('expanded'); }));
+  el.querySelectorAll('.past-report-card').forEach(c => c.addEventListener('click', () => openPastReportModal(c.dataset.id)));
+}
+
+function renderPastReportCard(r, wb, notes) {
+  const hasNote = notes[r.id] && notes[r.id].trim();
+  return `<div class="report-card past-report-card" data-id="${r.id}" style="border-left-color:${wb ? wb.color : 'var(--muted)'}">
+    <div class="report-card-title">${r.title}</div>
+    <div class="report-card-desc">${r.description || 'Keine Beschreibung'}</div>
+    <div class="report-card-footer">
+      <span class="usage-badge">${r.usage_count || 0} Aufrufe</span>
+      ${hasNote ? '<span class="notes-indicator" title="Notizen vorhanden">\uD83D\uDCDD</span>' : ''}
+      ${r.category ? `<span style="color:${getCatColor(r.category)};font-size:11px">${CATEGORIES[r.category]?.label || ''}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+/* === PAST REPORT MODAL === */
+
+function openPastReportModal(reportId) {
+  const past = getData(STORAGE_KEYS.reportsPast) || [];
+  const workbooks = getData(STORAGE_KEYS.workbooksPast) || [];
+  const notes = getData(STORAGE_KEYS.reportNotes) || {};
+  const isEdit = !!reportId;
+  const report = isEdit ? { ...past.find(r => r.id === reportId) } : { id: '', title: '', description: '', category: '', workbook_id: '', usage_count: 0 };
+  if (!report) return;
+
+  const m = document.getElementById('modal-container');
+  m.innerHTML = `<div class="modal-header"><div class="modal-title">${isEdit ? report.title : 'Neue vergangene Auswertung'}</div><button class="modal-close" id="pm-close" type="button">\u00D7</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="form-label">Titel *</label><input class="form-input" id="pm-title" value="${report.title}" placeholder="Auswertungstitel"></div>
+    <div class="form-group"><label class="form-label">Beschreibung</label><textarea class="form-input" id="pm-desc" rows="2" placeholder="Beschreibung\u2026">${report.description || ''}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Workbook</label><select class="form-select" id="pm-wb"><option value="">-- Kein Workbook --</option>${workbooks.map(w => `<option value="${w.id}" ${report.workbook_id === w.id ? 'selected' : ''}>${w.name}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Kategorie</label><select class="form-select" id="pm-cat"><option value="">-- Keine --</option>${Object.entries(CATEGORIES).map(([k, v]) => `<option value="${k}" ${report.category === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Aufrufe (manuell)</label><input class="form-input" id="pm-usage" type="number" min="0" value="${report.usage_count || 0}" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Notizen</label><textarea class="form-input" id="pm-notes" rows="3" placeholder="Notizen\u2026">${notes[report.id] || ''}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    ${isEdit ? '<button class="btn btn-ghost" id="pm-reactivate" type="button">\u21A9 Reaktivieren</button>' : ''}
+    ${isEdit ? '<button class="btn btn-danger" id="pm-delete" type="button">L\u00F6schen</button>' : ''}
+    <button class="btn btn-ghost" id="pm-cancel" type="button">Abbrechen</button>
+    <button class="btn btn-primary" id="pm-save" type="button">Speichern</button>
+  </div>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+  m.querySelector('#pm-close').addEventListener('click', closeModal);
+  m.querySelector('#pm-cancel').addEventListener('click', closeModal);
+
+  m.querySelector('#pm-save').addEventListener('click', () => {
+    const title = document.getElementById('pm-title').value.trim();
+    if (!title) { showToast('Titel erforderlich', 'warning'); return; }
+    const all = getData(STORAGE_KEYS.reportsPast) || [];
+    const now = new Date().toISOString();
+    const data = { title, description: document.getElementById('pm-desc').value.trim(), workbook_id: document.getElementById('pm-wb').value, category: document.getElementById('pm-cat').value, usage_count: parseInt(document.getElementById('pm-usage').value) || 0, updated_at: now };
+    if (isEdit) { const idx = all.findIndex(r => r.id === reportId); if (idx !== -1) all[idx] = { ...all[idx], ...data }; }
+    else { all.push({ id: generateId(), ...data, status: 'deprecated', priority: 'niedrig', data_source_ids: [], user_assignments: [], use_cases: [], created_at: now }); }
+    saveData(STORAGE_KEYS.reportsPast, all);
+    // Save notes
+    const allNotes = getData(STORAGE_KEYS.reportNotes) || {};
+    const rid = isEdit ? reportId : all[all.length - 1].id;
+    allNotes[rid] = document.getElementById('pm-notes').value;
+    saveData(STORAGE_KEYS.reportNotes, allNotes);
+    closeModal();
+    showToast(isEdit ? 'Aktualisiert' : 'Erstellt', 'success');
+    renderReportsPast();
+  });
+
+  const reactBtn = m.querySelector('#pm-reactivate');
+  if (reactBtn) reactBtn.addEventListener('click', () => { closeModal(); reactivateReport(reportId); });
+
+  const delBtn = m.querySelector('#pm-delete');
+  if (delBtn) delBtn.addEventListener('click', () => {
+    if (!confirm('Auswertung endg\u00FCltig l\u00F6schen?')) return;
+    let all = getData(STORAGE_KEYS.reportsPast) || [];
+    all = all.filter(r => r.id !== reportId);
+    saveData(STORAGE_KEYS.reportsPast, all);
+    closeModal();
+    showToast('Gel\u00F6scht', 'success');
+    renderReportsPast();
+  });
+}
+
+/* === RENDER: REPORT STATS === */
+
+function renderReportStats() {
+  const todayReports = getData(STORAGE_KEYS.reports) || [];
+  const pastReports = getData(STORAGE_KEYS.reportsPast) || [];
+  const allReports = [...todayReports.map(r => ({ ...r, source: 'Heute' })), ...pastReports.map(r => ({ ...r, source: 'Vergangenheit' }))];
+  const wbToday = getData(STORAGE_KEYS.workbooksToday) || [];
+  const wbPast = getData(STORAGE_KEYS.workbooksPast) || [];
+  const allWb = [...wbToday, ...wbPast];
+
+  const totalUsage = allReports.reduce((s, r) => s + (r.usage_count || 0), 0);
+  const topReport = allReports.length ? allReports.reduce((a, b) => (b.usage_count || 0) > (a.usage_count || 0) ? b : a, allReports[0]) : null;
+  const sorted = [...allReports].sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0));
+
+  const el = document.getElementById('report_stats-content');
+  el.innerHTML = `
+    <div class="view-header"><h1 class="view-title">Auswertungs-Statistik</h1><p class="view-subtitle">\u00DCbersicht aller Auswertungen mit Nutzungszahlen</p></div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(212,176,57,0.12);color:var(--accent)">\uD83D\uDCCA</div><div class="kpi-card-value">${allReports.length}</div><div class="kpi-card-label">Gesamt-Auswertungen</div></div>
+      <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(59,130,246,0.12);color:#3B82F6">\uD83D\uDC41</div><div class="kpi-card-value">${totalUsage}</div><div class="kpi-card-label">Gesamt-Aufrufe</div></div>
+      <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(34,197,94,0.12);color:var(--success)">\u2705</div><div class="kpi-card-value">${todayReports.length}</div><div class="kpi-card-label">Heute aktiv</div></div>
+      <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(168,85,247,0.12);color:#A855F7">\uD83D\uDCC1</div><div class="kpi-card-value">${pastReports.length}</div><div class="kpi-card-label">Vergangenheit</div></div>
+    </div>
+    ${topReport && (topReport.usage_count || 0) > 0 ? `<div class="stats-highlight"><span class="stats-highlight-label">\uD83C\uDFC6 Meistgenutzte Auswertung:</span> <strong>${topReport.title}</strong> (${topReport.usage_count} Aufrufe)</div>` : ''}
+    <div class="table-wrap"><table class="table"><thead><tr><th>Titel</th><th>Quelle</th><th>Workbook</th><th>Kategorie</th><th>Aufrufe</th></tr></thead><tbody>${sorted.map(r => {
+      const wb = allWb.find(w => w.id === r.workbook_id);
+      return `<tr><td><strong>${r.title}</strong></td><td><span class="badge ${r.source === 'Heute' ? 'badge-aktiv' : 'badge-deprecated'}">${r.source}</span></td><td>${wb ? `<span style="color:${wb.color};font-weight:600;font-size:12px">${wb.name}</span>` : '<span style="color:var(--muted)">\u2013</span>'}</td><td style="color:${getCatColor(r.category)}">${CATEGORIES[r.category]?.label || r.category || '\u2013'}</td><td><span class="usage-badge">${r.usage_count || 0}</span></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
 /* === AUTH: LOGIN / REGISTER / LOGOUT === */
 
 let isRegistering = false;
@@ -1676,7 +2030,7 @@ function initUI() {
 
   // Route from hash
   const hash = window.location.hash.replace('#', '');
-  const valid = ['dashboard', 'reports', 'users', 'datasources', 'categories', 'rollout', 'consolidation'];
+  const valid = ['dashboard', 'reports', 'reports_past', 'report_stats', 'users', 'datasources', 'categories', 'rollout', 'consolidation'];
   navigateTo(valid.includes(hash) ? hash : 'dashboard');
 }
 
