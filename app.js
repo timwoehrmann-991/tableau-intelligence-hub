@@ -192,16 +192,16 @@ async function seedIfEmpty() {
   const now = new Date().toISOString();
 
   const reports = [
-    { id: generateId(), title: 'Lieferantenbewertung Übersicht', description: 'Zentrale Bewertungsübersicht aller aktiven Lieferanten mit Scorecards und Trendanalysen.', category: 'strategischer_einkauf', status: 'aktiv', priority: 'hoch', refresh_cycle: 'monatlich', tableau_url: '', data_source_ids: [D('SAP'), D('Lieferanten')], user_assignments: [{ user_id: U('Sarah'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'sekundär' }], use_cases: [{ id: generateId(), title: 'Lieferantenranking', question: 'Welche Lieferanten performen am besten?', description: '' }], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Bestellvolumen nach Warengruppe', description: 'Detaillierte Aufschlüsselung des Bestellvolumens nach Warengruppen und Zeiträumen.', category: 'controlling', status: 'aktiv', priority: 'hoch', refresh_cycle: 'wöchentlich', tableau_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Julia'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'sekundär' }], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Liefertreue-Cockpit', description: 'Echtzeit-Überwachung der Liefertreue aller Lieferanten mit Alerts bei Abweichungen.', category: 'operativer_einkauf', status: 'aktiv', priority: 'hoch', refresh_cycle: 'täglich', tableau_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Markus'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'info' }], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Preisindex-Monitor', description: 'Tracking relevanter Preisindizes und deren Auswirkung auf die Beschaffungskosten.', category: 'strategischer_einkauf', status: 'in_entwicklung', priority: 'hoch', refresh_cycle: 'wöchentlich', tableau_url: '', data_source_ids: [D('SAP'), D('Marktdaten')], user_assignments: [{ user_id: U('Sarah'), relevance: 'primär' }, { user_id: U('Julia'), relevance: 'sekundär' }], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Rahmenvertragsübersicht', description: 'Übersicht aller laufenden Rahmenverträge inkl. Laufzeiten und Konditionen.', category: 'gesamter_einkauf', status: 'aktiv', priority: 'mittel', refresh_cycle: 'monatlich', tableau_url: '', data_source_ids: [D('SAP'), D('Verträge')], user_assignments: [{ user_id: U('Thomas'), relevance: 'primär' }], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Wareneingang & Reklamationen', description: 'Tagesaktuelle Auswertung von Wareneingängen und zugehörigen Reklamationen.', category: 'operativer_einkauf', status: 'aktiv', priority: 'mittel', refresh_cycle: 'täglich', tableau_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Markus'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'info' }], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Spend-Analyse Kategoriensicht', description: 'Analyse der Einkaufsausgaben nach Kategorien mit Savings-Potenzial.', category: 'controlling', status: 'in_planung', priority: 'hoch', refresh_cycle: '', tableau_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Julia'), relevance: 'primär' }, { user_id: U('Sarah'), relevance: 'sekundär' }], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Lieferantenstamm-Qualität', description: 'Analyse der Datenqualität im Lieferantenstamm mit Bereinigungsempfehlungen.', category: 'strategischer_einkauf', status: 'idee', priority: 'niedrig', refresh_cycle: '', tableau_url: '', data_source_ids: [D('SAP')], user_assignments: [], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Einkaufsbudget vs. Ist', description: 'Soll/Ist-Vergleich des Einkaufsbudgets mit Forecasting und Abweichungsanalyse.', category: 'angrenzende_abteilungen', status: 'aktiv', priority: 'hoch', refresh_cycle: 'monatlich', tableau_url: '', data_source_ids: [D('SAP'), D('Budget')], user_assignments: [{ user_id: U('Julia'), relevance: 'primär' }, { user_id: U('Andreas'), relevance: 'primär' }], use_cases: [], created_at: now, updated_at: now },
-    { id: generateId(), title: 'Neue Lieferanten Pipeline', description: 'Tracking neuer Lieferanten im Onboarding-Prozess mit Statusübersicht.', category: 'strategischer_einkauf', status: 'in_planung', priority: 'mittel', refresh_cycle: '', tableau_url: '', data_source_ids: [D('Lieferanten')], user_assignments: [{ user_id: U('Sarah'), relevance: 'primär' }], use_cases: [], created_at: now, updated_at: now }
+    { id: generateId(), title: 'Lieferantenbewertung Übersicht', description: 'Zentrale Bewertungsübersicht aller aktiven Lieferanten mit Scorecards und Trendanalysen.', category: 'strategischer_einkauf', status: 'aktiv', priority: 'hoch', refresh_cycle: 'monatlich', tableau_url: '', jira_ticket: 'EINK-101', jira_url: '', data_source_ids: [D('SAP'), D('Lieferanten')], user_assignments: [{ user_id: U('Sarah'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'sekundär' }], use_cases: [{ id: generateId(), title: 'Lieferantenranking', question: 'Welche Lieferanten performen am besten?', description: '' }], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Bestellvolumen nach Warengruppe', description: 'Detaillierte Aufschlüsselung des Bestellvolumens nach Warengruppen und Zeiträumen.', category: 'controlling', status: 'aktiv', priority: 'hoch', refresh_cycle: 'wöchentlich', tableau_url: '', jira_ticket: 'EINK-102', jira_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Julia'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'sekundär' }], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Liefertreue-Cockpit', description: 'Echtzeit-Überwachung der Liefertreue aller Lieferanten mit Alerts bei Abweichungen.', category: 'operativer_einkauf', status: 'aktiv', priority: 'hoch', refresh_cycle: 'täglich', tableau_url: '', jira_ticket: 'EINK-103', jira_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Markus'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'info' }], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Preisindex-Monitor', description: 'Tracking relevanter Preisindizes und deren Auswirkung auf die Beschaffungskosten.', category: 'strategischer_einkauf', status: 'in_entwicklung', priority: 'hoch', refresh_cycle: 'wöchentlich', tableau_url: '', jira_ticket: 'EINK-104', jira_url: '', data_source_ids: [D('SAP'), D('Marktdaten')], user_assignments: [{ user_id: U('Sarah'), relevance: 'primär' }, { user_id: U('Julia'), relevance: 'sekundär' }], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Rahmenvertragsübersicht', description: 'Übersicht aller laufenden Rahmenverträge inkl. Laufzeiten und Konditionen.', category: 'gesamter_einkauf', status: 'aktiv', priority: 'mittel', refresh_cycle: 'monatlich', tableau_url: '', jira_ticket: '', jira_url: '', data_source_ids: [D('SAP'), D('Verträge')], user_assignments: [{ user_id: U('Thomas'), relevance: 'primär' }], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Wareneingang & Reklamationen', description: 'Tagesaktuelle Auswertung von Wareneingängen und zugehörigen Reklamationen.', category: 'operativer_einkauf', status: 'aktiv', priority: 'mittel', refresh_cycle: 'täglich', tableau_url: '', jira_ticket: 'EINK-106', jira_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Markus'), relevance: 'primär' }, { user_id: U('Thomas'), relevance: 'info' }], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Spend-Analyse Kategoriensicht', description: 'Analyse der Einkaufsausgaben nach Kategorien mit Savings-Potenzial.', category: 'controlling', status: 'in_planung', priority: 'hoch', refresh_cycle: '', tableau_url: '', jira_ticket: '', jira_url: '', data_source_ids: [D('SAP')], user_assignments: [{ user_id: U('Julia'), relevance: 'primär' }, { user_id: U('Sarah'), relevance: 'sekundär' }], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Lieferantenstamm-Qualität', description: 'Analyse der Datenqualität im Lieferantenstamm mit Bereinigungsempfehlungen.', category: 'strategischer_einkauf', status: 'idee', priority: 'niedrig', refresh_cycle: '', tableau_url: '', jira_ticket: '', jira_url: '', data_source_ids: [D('SAP')], user_assignments: [], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Einkaufsbudget vs. Ist', description: 'Soll/Ist-Vergleich des Einkaufsbudgets mit Forecasting und Abweichungsanalyse.', category: 'angrenzende_abteilungen', status: 'aktiv', priority: 'hoch', refresh_cycle: 'monatlich', tableau_url: '', jira_ticket: 'EINK-109', jira_url: '', data_source_ids: [D('SAP'), D('Budget')], user_assignments: [{ user_id: U('Julia'), relevance: 'primär' }, { user_id: U('Andreas'), relevance: 'primär' }], use_cases: [], created_at: now, updated_at: now },
+    { id: generateId(), title: 'Neue Lieferanten Pipeline', description: 'Tracking neuer Lieferanten im Onboarding-Prozess mit Statusübersicht.', category: 'strategischer_einkauf', status: 'in_planung', priority: 'mittel', refresh_cycle: '', tableau_url: '', jira_ticket: '', jira_url: '', data_source_ids: [D('Lieferanten')], user_assignments: [{ user_id: U('Sarah'), relevance: 'primär' }], use_cases: [], created_at: now, updated_at: now }
   ];
   saveData(STORAGE_KEYS.reports, reports);
   saveData(STORAGE_KEYS.categoryNotes, {});
@@ -405,13 +405,11 @@ function renderReports() {
   el.querySelectorAll('.view-toggle-btn').forEach(b => b.addEventListener('click', () => { state.reportsViewMode = b.dataset.mode; renderReports(); }));
   el.querySelectorAll('.report-card-edit').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); openReportModal(b.dataset.id); }); });
   el.querySelectorAll('.report-card-delete').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); showDeleteConfirmCard(e.currentTarget, b.dataset.id); }); });
-  el.querySelectorAll('.report-card').forEach(c => c.addEventListener('click', () => {
-    const url = c.dataset.url;
-    if (url && url.trim()) { window.open(url, '_blank', 'noopener'); }
-    else { openReportModal(c.dataset.id); }
-  }));
+  el.querySelectorAll('.report-card-pdf').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); generateReportPdf(b.dataset.id); }); });
+  el.querySelectorAll('.report-card').forEach(c => c.addEventListener('click', () => openReportModal(c.dataset.id)));
   el.querySelectorAll('.table-action-btn[data-action="edit"]').forEach(b => b.addEventListener('click', () => openReportModal(b.dataset.id)));
   el.querySelectorAll('.table-action-btn[data-action="delete"]').forEach(b => b.addEventListener('click', e => showDeleteConfirm(e.currentTarget, b.dataset.id)));
+  el.querySelectorAll('.table-action-btn[data-action="pdf"]').forEach(b => b.addEventListener('click', () => generateReportPdf(b.dataset.id)));
   el.querySelectorAll('.table th[data-sort]').forEach(th => { th.addEventListener('click', () => { const c = th.dataset.sort; if (state.sortColumn === c) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc'; else { state.sortColumn = c; state.sortDir = 'asc'; } renderReports(); }); });
 
   document.addEventListener('click', handleDropdownClose);
@@ -430,12 +428,15 @@ function renderReportCard(r, users) {
   const assigned = (r.user_assignments || []).map(a => users.find(u => u.id === a.user_id)).filter(Boolean);
   const dsC = (r.data_source_ids || []).length;
   const hasUrl = r.tableau_url && r.tableau_url.trim();
-  return `<div class="report-card" data-id="${r.id}" ${hasUrl ? `data-url="${r.tableau_url}"` : ''} style="border-left-color:${getCatColor(r.category)}">
-    ${hasUrl ? `<a class="report-card-link" href="${r.tableau_url}" target="_blank" rel="noopener" title="In Tableau öffnen" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ''}
+  const hasJira = r.jira_ticket && r.jira_ticket.trim();
+  return `<div class="report-card" data-id="${r.id}" style="border-left-color:${getCatColor(r.category)}">
     <div class="report-card-actions-top">
-      <button class="report-card-edit" data-id="${r.id}" type="button" title="Bearbeiten"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-      <button class="report-card-delete" data-id="${r.id}" type="button" title="Löschen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      ${hasUrl ? `<a class="report-card-action-btn tableau-link-btn" href="${r.tableau_url}" target="_blank" rel="noopener" title="In Tableau öffnen" onclick="event.stopPropagation()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ''}
+      <button class="report-card-action-btn report-card-pdf" data-id="${r.id}" type="button" title="Stammblatt PDF" onclick="event.stopPropagation()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></button>
+      <button class="report-card-edit" data-id="${r.id}" type="button" title="Bearbeiten" onclick="event.stopPropagation()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="report-card-delete" data-id="${r.id}" type="button" title="Löschen" onclick="event.stopPropagation()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
     </div>
+    ${hasJira ? `<a class="jira-badge" href="${r.jira_url || '#'}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="JIRA öffnen">${r.jira_ticket}</a>` : ''}
     <div class="report-card-title">${r.title}</div>
     <div class="report-card-desc">${r.description || 'Keine Beschreibung'}</div>
     <div class="report-card-footer">
@@ -451,15 +452,18 @@ function renderTable(reports, users) {
   const arrow = c => state.sortColumn === c ? `<span class="sort-arrow">${state.sortDir === 'asc' ? '\u2191' : '\u2193'}</span>` : '<span class="sort-arrow">\u2195</span>';
   const sorted = c => state.sortColumn === c ? 'sorted' : '';
   return `<div class="table-wrap"><table class="table"><thead><tr>
+    <th>JIRA</th>
     <th data-sort="title" class="${sorted('title')}">Titel ${arrow('title')}</th>
     <th data-sort="category" class="${sorted('category')}">Kategorie ${arrow('category')}</th>
     <th data-sort="status" class="${sorted('status')}">Status ${arrow('status')}</th>
     <th data-sort="priority" class="${sorted('priority')}">Priorität ${arrow('priority')}</th>
-    <th>Quellen</th><th>Nutzer</th><th>Score</th><th>Aktionen</th>
+    <th>Quellen</th><th>Nutzer</th><th>Score</th><th>Tableau</th><th>Aktionen</th>
   </tr></thead><tbody>${reports.map(r => {
     const au = (r.user_assignments || []).map(a => users.find(u => u.id === a.user_id)).filter(Boolean);
     const comp = getCompleteness(r);
-    return `<tr><td><strong>${r.title}</strong></td><td style="color:${getCatColor(r.category)}">${CATEGORIES[r.category]?.label || r.category}</td><td><span class="badge ${STATUSES[r.status]?.css || ''}">${STATUSES[r.status]?.label || ''}</span></td><td><span class="priority-dot ${PRIORITIES[r.priority]?.dot || ''}" style="display:inline-block"></span> ${PRIORITIES[r.priority]?.label || ''}</td><td>${(r.data_source_ids || []).length}</td><td><div style="display:flex">${au.slice(0,3).map(u => `<div class="avatar-circle" style="background:${ROLES[u.role]?.color || '#64748B'};width:24px;height:24px;font-size:10px" title="${u.name}">${getInitials(u.name)}</div>`).join('')}</div></td><td><div class="completeness-dots">${[1,2,3,4,5].map(i => `<div class="completeness-dot ${i <= comp ? 'filled' : ''}"></div>`).join('')}</div></td><td><div class="table-actions" style="position:relative"><button class="table-action-btn" data-action="edit" data-id="${r.id}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="table-action-btn danger" data-action="delete" data-id="${r.id}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`;
+    const hasUrl = r.tableau_url && r.tableau_url.trim();
+    const hasJira = r.jira_ticket && r.jira_ticket.trim();
+    return `<tr><td>${hasJira ? `<a class="jira-badge jira-badge-table" href="${r.jira_url || '#'}" target="_blank" rel="noopener">${r.jira_ticket}</a>` : '<span style="color:var(--muted)">–</span>'}</td><td><strong>${r.title}</strong></td><td style="color:${getCatColor(r.category)}">${CATEGORIES[r.category]?.label || r.category}</td><td><span class="badge ${STATUSES[r.status]?.css || ''}">${STATUSES[r.status]?.label || ''}</span></td><td><span class="priority-dot ${PRIORITIES[r.priority]?.dot || ''}" style="display:inline-block"></span> ${PRIORITIES[r.priority]?.label || ''}</td><td>${(r.data_source_ids || []).length}</td><td><div style="display:flex">${au.slice(0,3).map(u => `<div class="avatar-circle" style="background:${ROLES[u.role]?.color || '#64748B'};width:24px;height:24px;font-size:10px" title="${u.name}">${getInitials(u.name)}</div>`).join('')}</div></td><td><div class="completeness-dots">${[1,2,3,4,5].map(i => `<div class="completeness-dot ${i <= comp ? 'filled' : ''}"></div>`).join('')}</div></td><td>${hasUrl ? `<a class="table-action-btn tableau-link-btn" href="${r.tableau_url}" target="_blank" rel="noopener" title="In Tableau öffnen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : '<span style="color:var(--muted)">–</span>'}</td><td><div class="table-actions" style="position:relative"><button class="table-action-btn" data-action="pdf" data-id="${r.id}" type="button" title="Stammblatt PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></button><button class="table-action-btn" data-action="edit" data-id="${r.id}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="table-action-btn danger" data-action="delete" data-id="${r.id}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`;
   }).join('')}</tbody></table></div>`;
 }
 
@@ -641,6 +645,7 @@ function renderCategories() {
   el.querySelectorAll('.report-card').forEach(c => c.addEventListener('click', () => openReportModal(c.dataset.id)));
   el.querySelectorAll('.report-card-edit').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); openReportModal(b.dataset.id); }); });
   el.querySelectorAll('.report-card-delete').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); showDeleteConfirmCard(e.currentTarget, b.dataset.id); }); });
+  el.querySelectorAll('.report-card-pdf').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); generateReportPdf(b.dataset.id); }); });
 
   // Add category button
   document.getElementById('btn-add-category').addEventListener('click', () => showCategoryForm(null));
@@ -771,7 +776,9 @@ function openReportModal(reportId) {
   const datasources = getData(STORAGE_KEYS.datasources) || [];
   const users = getData(STORAGE_KEYS.users) || [];
   const isEdit = !!reportId;
-  const report = isEdit ? { ...reports.find(r => r.id === reportId) } : { id: '', title: '', description: '', category: 'operativer_einkauf', status: 'idee', priority: 'mittel', refresh_cycle: '', tableau_url: '', data_source_ids: [], user_assignments: [], use_cases: [] };
+  const report = isEdit ? { ...reports.find(r => r.id === reportId) } : { id: '', title: '', description: '', category: 'operativer_einkauf', status: 'idee', priority: 'mittel', refresh_cycle: '', tableau_url: '', jira_ticket: '', jira_url: '', data_source_ids: [], user_assignments: [], use_cases: [] };
+  if (isEdit && !report.jira_ticket) report.jira_ticket = '';
+  if (isEdit && !report.jira_url) report.jira_url = '';
   if (!report || (!isEdit && report === undefined)) return;
 
   let tab = 0;
@@ -792,6 +799,7 @@ function openReportModal(reportId) {
         <div class="form-row"><div class="form-group"><label class="form-label">Kategorie</label><select class="form-select" id="mcat">${Object.entries(CATEGORIES).map(([k, v]) => `<option value="${k}" ${report.category === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div><div class="form-group"><label class="form-label">Status</label><select class="form-select" id="mstat">${Object.entries(STATUSES).map(([k, v]) => `<option value="${k}" ${report.status === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div></div>
         <div class="form-row"><div class="form-group"><label class="form-label">Priorität</label><div class="priority-toggle">${Object.entries(PRIORITIES).map(([k, v]) => `<button class="priority-btn ${k} ${report.priority === k ? 'active' : ''}" data-p="${k}" type="button">${v.label}</button>`).join('')}</div></div><div class="form-group"><label class="form-label">Aktualisierungszyklus</label><input class="form-input" id="mref" value="${report.refresh_cycle || ''}" placeholder="z.B. täglich, wöchentlich"></div></div>
         <div class="form-group"><label class="form-label">Tableau URL</label><input class="form-input" id="mturl" value="${report.tableau_url || ''}" placeholder="https://tableau.haecker.com/..."></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">JIRA Ticketnummer</label><input class="form-input" id="mjira" value="${report.jira_ticket || ''}" placeholder="z.B. EINK-1234"></div><div class="form-group"><label class="form-label">JIRA Link</label><input class="form-input" id="mjiraurl" value="${report.jira_url || ''}" placeholder="https://jira.haecker.com/browse/EINK-1234"></div></div>
       </div>
       <div class="modal-tab-content ${tab === 1 ? 'active' : ''}">${mDs.length ? `<div class="selected-tags">${mDs.map(did => { const d = datasources.find(x => x.id === did); return d ? `<span class="selected-tag">${DS_TYPES[d.type]?.icon || ''} ${d.name} <span class="selected-tag-remove" data-rm-ds="${d.id}">\u00D7</span></span>` : ''; }).join('')}</div>` : ''}<div class="ds-checklist">${datasources.map(d => `<label class="ds-check-item ${mDs.includes(d.id) ? 'checked' : ''}"><input type="checkbox" value="${d.id}" ${mDs.includes(d.id) ? 'checked' : ''}><span class="ds-type-icon">${DS_TYPES[d.type]?.icon || ''}</span><span class="ds-check-name">${d.name}</span><span class="ds-check-owner">${d.owner || ''}</span></label>`).join('')}</div></div>
       <div class="modal-tab-content ${tab === 2 ? 'active' : ''}"><div class="user-assign-list">${users.map(u => { const a = mUa.find(x => x.user_id === u.id); const ch = !!a; const rel = a ? a.relevance : 'primär'; return `<div class="user-assign-item ${ch ? 'checked' : ''}" data-uid="${u.id}"><input type="checkbox" value="${u.id}" ${ch ? 'checked' : ''} style="appearance:none;-webkit-appearance:none;width:18px;height:18px;border:2px solid var(--muted);border-radius:5px;flex-shrink:0;cursor:pointer;position:relative;${ch ? 'background:var(--accent);border-color:var(--accent)' : ''}"><div class="avatar-circle" style="background:${ROLES[u.role]?.color || '#64748B'};width:32px;height:32px;font-size:12px">${getInitials(u.name)}</div><span class="user-assign-name">${u.name}</span><span class="user-assign-role">${ROLES[u.role]?.label || ''}</span>${ch ? `<div class="relevance-toggle" data-uid="${u.id}">${['primär', 'sekundär', 'info'].map(r => `<button class="relevance-btn ${rel === r ? 'active' : ''}" data-rel="${r}" type="button">${r[0].toUpperCase() + r.slice(1)}</button>`).join('')}</div>` : ''}</div>`; }).join('')}</div></div>
@@ -818,7 +826,7 @@ function openReportModal(reportId) {
       if (!title) { showToast('Titel erforderlich', 'warning'); return; }
       const allR = getData(STORAGE_KEYS.reports) || [];
       const now = new Date().toISOString();
-      const data = { title, description: report.description, category: report.category, status: report.status, priority: report.priority, refresh_cycle: report.refresh_cycle, tableau_url: report.tableau_url || '', data_source_ids: mDs, user_assignments: mUa, use_cases: mUc, updated_at: now };
+      const data = { title, description: report.description, category: report.category, status: report.status, priority: report.priority, refresh_cycle: report.refresh_cycle, tableau_url: report.tableau_url || '', jira_ticket: report.jira_ticket || '', jira_url: report.jira_url || '', data_source_ids: mDs, user_assignments: mUa, use_cases: mUc, updated_at: now };
       if (isEdit) { const idx = allR.findIndex(r => r.id === reportId); if (idx !== -1) allR[idx] = { ...allR[idx], ...data }; }
       else allR.push({ id: generateId(), ...data, created_at: now });
       saveData(STORAGE_KEYS.reports, allR);
@@ -830,8 +838,8 @@ function openReportModal(reportId) {
   }
 
   function collect() {
-    const t = document.getElementById('mt'), d = document.getElementById('md'), c = document.getElementById('mcat'), s = document.getElementById('mstat'), r = document.getElementById('mref'), tu = document.getElementById('mturl');
-    if (t) report.title = t.value; if (d) report.description = d.value; if (c) report.category = c.value; if (s) report.status = s.value; if (r) report.refresh_cycle = r.value; if (tu) report.tableau_url = tu.value;
+    const t = document.getElementById('mt'), d = document.getElementById('md'), c = document.getElementById('mcat'), s = document.getElementById('mstat'), r = document.getElementById('mref'), tu = document.getElementById('mturl'), jt = document.getElementById('mjira'), ju = document.getElementById('mjiraurl');
+    if (t) report.title = t.value; if (d) report.description = d.value; if (c) report.category = c.value; if (s) report.status = s.value; if (r) report.refresh_cycle = r.value; if (tu) report.tableau_url = tu.value; if (jt) report.jira_ticket = jt.value; if (ju) report.jira_url = ju.value;
   }
   function collectUc() {
     document.querySelectorAll('.use-case-row').forEach((row, i) => {
@@ -847,266 +855,262 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
 }
 
-function closePdfModal() {
-  document.getElementById('pdf-modal-overlay').classList.remove('open');
-}
-
 function closeAllModals() {
   document.getElementById('modal-overlay').classList.remove('open');
-  document.getElementById('pdf-modal-overlay').classList.remove('open');
 }
 
-/* === PDF EXPORT === */
+/* === PDF STAMMBLATT (Individual Report) === */
 
-function openPdfModal() {
-  refreshCategories();
+function generateReportPdf(reportId) {
   const reports = getData(STORAGE_KEYS.reports) || [];
   const users = getData(STORAGE_KEYS.users) || [];
   const datasources = getData(STORAGE_KEYS.datasources) || [];
+  const r = reports.find(x => x.id === reportId);
+  if (!r) { showToast('Auswertung nicht gefunden', 'error'); return; }
 
-  let pdfFilters = { categories: [], statuses: [], userIds: [], priority: '' };
-  let pdfOptions = { colorMode: 'color', orientation: 'portrait' };
-
-  function renderPdf() {
-    let filtered = reports.filter(r => {
-      if (pdfFilters.categories.length && !pdfFilters.categories.includes(r.category)) return false;
-      if (pdfFilters.statuses.length && !pdfFilters.statuses.includes(r.status)) return false;
-      if (pdfFilters.priority && r.priority !== pdfFilters.priority) return false;
-      if (pdfFilters.userIds.length && !(r.user_assignments || []).some(a => pdfFilters.userIds.includes(a.user_id))) return false;
-      return true;
-    });
-
-    const m = document.getElementById('pdf-modal-container');
-    m.innerHTML = `<div class="modal-header"><div class="modal-title">PDF Export</div><button class="modal-close" id="pdf-close" type="button">\u00D7</button></div>
-    <div class="modal-body">
-      <div class="pdf-options-row">
-        <div class="pdf-option-group"><span class="form-label">Farbe</span><div class="pdf-toggle"><button class="pdf-toggle-btn ${pdfOptions.colorMode === 'color' ? 'active' : ''}" data-color="color" type="button">Farbe</button><button class="pdf-toggle-btn ${pdfOptions.colorMode === 'bw' ? 'active' : ''}" data-color="bw" type="button">Schwarz-Weiß</button></div></div>
-        <div class="pdf-option-group"><span class="form-label">Format</span><div class="pdf-toggle"><button class="pdf-toggle-btn ${pdfOptions.orientation === 'portrait' ? 'active' : ''}" data-orient="portrait" type="button">Hochformat</button><button class="pdf-toggle-btn ${pdfOptions.orientation === 'landscape' ? 'active' : ''}" data-orient="landscape" type="button">Querformat</button></div></div>
-      </div>
-      <div class="pdf-filter-group"><label class="form-label">Nach Kategorie filtern</label><div class="pdf-filter-chips" id="pdf-cat-chips">${Object.entries(CATEGORIES).map(([k, v]) => `<button class="pdf-chip ${pdfFilters.categories.includes(k) ? 'active' : ''}" data-pdfcat="${k}" type="button">${v.icon} ${v.label}</button>`).join('')}</div></div>
-      <div class="pdf-filter-group"><label class="form-label">Nach Status filtern</label><div class="pdf-filter-chips" id="pdf-status-chips">${STATUS_ORDER.map(s => `<button class="pdf-chip ${pdfFilters.statuses.includes(s) ? 'active' : ''}" data-pdfstatus="${s}" type="button">${STATUSES[s].label}</button>`).join('')}</div></div>
-      <div class="pdf-filter-group"><label class="form-label">Nach Team / Nutzer filtern</label><div class="pdf-filter-chips" id="pdf-user-chips">${users.map(u => `<button class="pdf-chip ${pdfFilters.userIds.includes(u.id) ? 'active' : ''}" data-pdfuid="${u.id}" type="button">${u.name} (${u.department || '\u2013'})</button>`).join('')}</div></div>
-      <div class="pdf-filter-group"><label class="form-label">Nach Priorität filtern</label><div class="pdf-filter-chips" id="pdf-prio-chips"><button class="pdf-chip ${!pdfFilters.priority ? 'active' : ''}" data-pdfprio="" type="button">Alle</button>${Object.entries(PRIORITIES).map(([k, v]) => `<button class="pdf-chip ${pdfFilters.priority === k ? 'active' : ''}" data-pdfprio="${k}" type="button">${v.label}</button>`).join('')}</div></div>
-      <div class="pdf-preview"><div class="pdf-preview-title">${filtered.length} Auswertungen im Export</div>${filtered.map(r => {
-        const au = (r.user_assignments || []).map(a => { const u = users.find(x => x.id === a.user_id); return u ? u.name : ''; }).filter(Boolean).join(', ');
-        return `<div class="pdf-preview-item"><div class="recent-item-cat" style="background:${getCatColor(r.category)};width:4px;height:20px;border-radius:2px;flex-shrink:0"></div><span style="flex:1;font-weight:500">${r.title}</span><span class="badge ${STATUSES[r.status]?.css || ''}">${STATUSES[r.status]?.label || ''}</span><span style="font-size:11px;color:var(--muted);margin-left:8px">${au || 'Keine Nutzer'}</span></div>`;
-      }).join('')}</div>
-    </div>
-    <div class="modal-footer"><button class="btn btn-ghost" id="pdf-cancel" type="button">Abbrechen</button><button class="btn btn-primary" id="pdf-download" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF herunterladen</button></div>`;
-
-    m.querySelector('#pdf-close').addEventListener('click', closePdfModal);
-    m.querySelector('#pdf-cancel').addEventListener('click', closePdfModal);
-
-    // Color/BW toggle
-    m.querySelectorAll('[data-color]').forEach(b => b.addEventListener('click', () => { pdfOptions.colorMode = b.dataset.color; renderPdf(); }));
-    // Orientation toggle
-    m.querySelectorAll('[data-orient]').forEach(b => b.addEventListener('click', () => { pdfOptions.orientation = b.dataset.orient; renderPdf(); }));
-
-    // Filter chips with unique data attributes to avoid conflicts
-    m.querySelectorAll('[data-pdfcat]').forEach(b => b.addEventListener('click', () => { const c = b.dataset.pdfcat; const i = pdfFilters.categories.indexOf(c); if (i === -1) pdfFilters.categories.push(c); else pdfFilters.categories.splice(i, 1); renderPdf(); }));
-    m.querySelectorAll('[data-pdfstatus]').forEach(b => b.addEventListener('click', () => { const s = b.dataset.pdfstatus; const i = pdfFilters.statuses.indexOf(s); if (i === -1) pdfFilters.statuses.push(s); else pdfFilters.statuses.splice(i, 1); renderPdf(); }));
-    m.querySelectorAll('[data-pdfuid]').forEach(b => b.addEventListener('click', () => { const u = b.dataset.pdfuid; const i = pdfFilters.userIds.indexOf(u); if (i === -1) pdfFilters.userIds.push(u); else pdfFilters.userIds.splice(i, 1); renderPdf(); }));
-    m.querySelectorAll('[data-pdfprio]').forEach(b => b.addEventListener('click', () => { pdfFilters.priority = b.dataset.pdfprio; renderPdf(); }));
-
-    m.querySelector('#pdf-download').addEventListener('click', () => generatePdf(filtered, users, datasources, pdfOptions));
-  }
-
-  document.getElementById('pdf-modal-overlay').classList.add('open');
-  renderPdf();
-}
-
-/** Generate and download a PDF using jsPDF */
-function generatePdf(reports, users, datasources, options = {}) {
-  try {
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      showToast('PDF-Bibliothek wird geladen, bitte erneut versuchen…', 'warning');
-      // Try loading jsPDF dynamically
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
-      s.onload = () => showToast('PDF-Bibliothek geladen. Bitte erneut klicken.', 'success');
-      document.head.appendChild(s);
-      return;
-    }
-    const { jsPDF } = window.jspdf;
-    const orient = options.orientation || 'portrait';
-    const isBW = options.colorMode === 'bw';
-    const doc = new jsPDF({ orientation: orient, unit: 'mm', format: 'a4' });
-  } catch (err) {
-    console.error('PDF init error:', err);
-    showToast('PDF-Fehler: ' + err.message, 'error');
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    showToast('PDF-Bibliothek wird geladen…', 'warning');
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
+    s.onload = () => showToast('PDF geladen. Bitte erneut klicken.', 'success');
+    document.head.appendChild(s);
     return;
   }
 
-  const { jsPDF } = window.jspdf;
-  const orient = options.orientation || 'portrait';
-  const isBW = options.colorMode === 'bw';
-  const doc = new jsPDF({ orientation: orient, unit: 'mm', format: 'a4' });
-
-  const pageW = orient === 'landscape' ? 297 : 210;
-  const pageH = orient === 'landscape' ? 210 : 297;
-  const margin = 20;
-  const contentW = pageW - margin * 2;
-  let y = 20;
-
-  function checkPage(needed) {
-    if (y + needed > pageH - 17) { doc.addPage(); y = 20; }
-  }
-
-  function hexToRgb(hex) {
-    if (!hex || hex.length < 7) return isBW ? [128, 128, 128] : [100, 116, 139];
-    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-    return isBW ? toGray(r, g, b) : [r, g, b];
-  }
-
-  function toGray(r, g, b) {
-    const v = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-    return [v, v, v];
-  }
-
-  /** Truncate text to fit within maxWidth mm */
-  function truncText(text, maxWidth, fontSize) {
-    doc.setFontSize(fontSize);
-    if (doc.getTextWidth(text) <= maxWidth) return text;
-    while (text.length > 0 && doc.getTextWidth(text + '…') > maxWidth) text = text.slice(0, -1);
-    return text + '…';
-  }
-
   try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = 210, pageH = 297, margin = 20, contentW = 170;
+    let y = 0;
 
-  // Title page
-  if (isBW) { doc.setFillColor(40, 40, 40); } else { doc.setFillColor(20, 61, 89); }
-  doc.rect(0, 0, pageW, pageH, 'F');
+    function checkPage(needed) { if (y + needed > pageH - 20) { doc.addPage(); y = 20; } }
+    function hexToRgb(hex) { if (!hex || hex.length < 7) return [100, 116, 139]; return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)]; }
 
-  if (isBW) { doc.setTextColor(220, 220, 220); } else { doc.setTextColor(212, 176, 57); }
-  doc.setFontSize(32);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Tableau Intelligence Hub', pageW / 2, pageH * 0.34, { align: 'center' });
+    // --- Header bar ---
+    const catColor = getCatColor(r.category);
+    const [hr, hg, hb] = hexToRgb(catColor);
+    doc.setFillColor(20, 61, 89);
+    doc.rect(0, 0, pageW, 50, 'F');
+    doc.setFillColor(hr, hg, hb);
+    doc.rect(0, 50, pageW, 4, 'F');
 
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'normal');
-  if (isBW) { doc.setTextColor(180, 180, 180); } else { doc.setTextColor(200, 210, 230); }
-  doc.text('Haecker Kuechen \u2014 Einkaufsauswertungen', pageW / 2, pageH * 0.34 + 15, { align: 'center' });
-
-  doc.setFontSize(12);
-  if (isBW) { doc.setTextColor(140, 140, 140); } else { doc.setTextColor(160, 175, 200); }
-  doc.text(reports.length + ' Auswertungen \u00B7 Exportiert am ' + new Date().toLocaleDateString('de-DE'), pageW / 2, pageH * 0.34 + 30, { align: 'center' });
-
-  doc.setFontSize(10);
-  doc.text((orient === 'landscape' ? 'Querformat' : 'Hochformat') + ' \u00B7 ' + (isBW ? 'Schwarz-Weiss' : 'Farbe'), pageW / 2, pageH * 0.34 + 45, { align: 'center' });
-
-  // Summary page
-  doc.addPage();
-  y = 20;
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, pageW, pageH, 'F');
-
-  doc.setTextColor(20, 30, 50);
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Übersicht', margin, y);
-  y += 12;
-
-  const stats = [
-    { label: 'Gesamt', value: reports.length },
-    { label: 'Aktiv', value: reports.filter(r => r.status === 'aktiv').length },
-    { label: 'Hohe Priorität', value: reports.filter(r => r.priority === 'hoch').length },
-    { label: 'Ø Score', value: reports.length ? (reports.reduce((s, r) => s + getCompleteness(r), 0) / reports.length).toFixed(1) : '0' }
-  ];
-
-  const boxW = contentW / 4 - 3;
-  stats.forEach((s, i) => {
-    const bx = margin + i * (boxW + 4);
-    doc.setFillColor(245, 247, 250);
-    doc.roundedRect(bx, y, boxW, 22, 3, 3, 'F');
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    const [sr, sg, sb] = isBW ? [60, 60, 60] : [20, 61, 89];
-    doc.setTextColor(sr, sg, sb);
-    doc.text(String(s.value), bx + boxW / 2, y + 12, { align: 'center' });
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 115, 140);
-    doc.text(s.label, bx + boxW / 2, y + 19, { align: 'center' });
-  });
-  y += 32;
-
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(20, 30, 50);
-  doc.text('Nach Kategorie', margin, y);
-  y += 8;
-
-  Object.entries(CATEGORIES).forEach(([key, cat]) => {
-    const count = reports.filter(r => r.category === key).length;
+    // Title
+    doc.setTextColor(212, 176, 57);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(60, 70, 90);
-    doc.text(sanitizePdf(cat.label), margin, y);
-    doc.text(String(count), margin + contentW, y, { align: 'right' });
+    doc.text('STAMMBLATT', margin, 16);
 
-    doc.setFillColor(230, 233, 240);
-    doc.roundedRect(margin, y + 2, contentW, 3, 1, 1, 'F');
-    const [cr, cg, cb] = hexToRgb(getCatColor(key));
-    doc.setFillColor(cr, cg, cb);
-    doc.roundedRect(margin, y + 2, Math.max(2, contentW * (count / Math.max(reports.length, 1))), 3, 1, 1, 'F');
-    y += 12;
-  });
-  y += 8;
-
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(20, 30, 50);
-  doc.text('Auswertungen im Detail', margin, y);
-  y += 10;
-
-  reports.forEach((r) => {
-    checkPage(40);
-
-    doc.setFillColor(248, 249, 252);
-    doc.roundedRect(margin, y, contentW, 32, 3, 3, 'F');
-
-    const [cr, cg, cb] = hexToRgb(getCatColor(r.category));
-    doc.setFillColor(cr, cg, cb);
-    doc.rect(margin, y, 3, 32, 'F');
-
-    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(20, 30, 50);
-    doc.text(truncText(sanitizePdf(r.title || ''), contentW - 12, 11), margin + 8, y + 8);
+    const titleText = sanitizePdf(r.title || 'Ohne Titel');
+    const titleLines = doc.splitTextToSize(titleText, contentW);
+    doc.text(titleLines, margin, 28);
 
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 115, 140);
+    doc.setTextColor(180, 200, 220);
+    doc.text('Haecker Kuechen - Tableau Intelligence Hub', margin, 45);
+    doc.text(new Date().toLocaleDateString('de-DE'), pageW - margin, 45, { align: 'right' });
 
-    const catLabel = CATEGORIES[r.category]?.label || '';
-    const statusLabel = STATUSES[r.status]?.label || '';
-    const prioLabel = PRIORITIES[r.priority]?.label || '';
-    doc.text(sanitizePdf(catLabel + ' - ' + statusLabel + ' - Prioritaet: ' + prioLabel + ' - Score: ' + getCompleteness(r) + '/5'), margin + 8, y + 15);
+    y = 62;
 
-    const assignedNames = (r.user_assignments || []).map(a => { const u = users.find(x => x.id === a.user_id); return u ? u.name + ' (' + a.relevance + ')' : ''; }).filter(Boolean).join(', ');
-    doc.text(sanitizePdf('Nutzer: ' + (assignedNames || 'Keine')), margin + 8, y + 21);
+    // --- Metadata section ---
+    doc.setFillColor(245, 247, 252);
+    doc.roundedRect(margin, y, contentW, 48, 3, 3, 'F');
 
-    const dsNames = (r.data_source_ids || []).map(did => { const d = datasources.find(x => x.id === did); return d ? d.name : ''; }).filter(Boolean).join(', ');
-    doc.text(sanitizePdf('Datenquellen: ' + (dsNames || 'Keine')), margin + 8, y + 27);
+    const comp = getCompleteness(r);
+    const meta = [
+      ['Kategorie', sanitizePdf(CATEGORIES[r.category]?.label || r.category)],
+      ['Status', sanitizePdf(STATUSES[r.status]?.label || r.status)],
+      ['Prioritaet', sanitizePdf(PRIORITIES[r.priority]?.label || r.priority)],
+      ['Aktualisierung', sanitizePdf(r.refresh_cycle || '–')],
+      ['Score', comp + ' / 5'],
+      ['JIRA', sanitizePdf(r.jira_ticket || '–')]
+    ];
 
-    y += 36;
-  });
+    const colW = contentW / 3;
+    meta.forEach((m, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      const mx = margin + 8 + col * colW;
+      const my = y + 10 + row * 20;
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(120, 130, 150);
+      doc.text(m[0], mx, my);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 40, 60);
+      doc.text(m[1], mx, my + 6);
+    });
 
-  checkPage(15);
-  y += 5;
-  doc.setDrawColor(200, 200, 210);
-  doc.line(margin, y, margin + contentW, y);
-  y += 8;
-  doc.setFontSize(8);
-  doc.setTextColor(150, 160, 175);
-  doc.text('Haecker Kuechen - Tableau Intelligence Hub - ' + new Date().toLocaleString('de-DE'), pageW / 2, y, { align: 'center' });
+    y += 56;
 
-  doc.save('Haecker_Auswertungen_' + new Date().toISOString().split('T')[0] + '.pdf');
-  showToast('PDF heruntergeladen', 'success');
-  closePdfModal();
+    // --- Tableau & JIRA URLs ---
+    if ((r.tableau_url && r.tableau_url.trim()) || (r.jira_url && r.jira_url.trim())) {
+      checkPage(20);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 100, 130);
+      if (r.tableau_url && r.tableau_url.trim()) {
+        doc.text('Tableau: ' + sanitizePdf(r.tableau_url), margin, y);
+        y += 5;
+      }
+      if (r.jira_url && r.jira_url.trim()) {
+        doc.text('JIRA: ' + sanitizePdf(r.jira_url), margin, y);
+        y += 5;
+      }
+      y += 4;
+    }
+
+    // --- Description ---
+    if (r.description && r.description.trim()) {
+      checkPage(25);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(20, 61, 89);
+      doc.text('Beschreibung', margin, y);
+      y += 7;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(50, 60, 80);
+      const descLines = doc.splitTextToSize(sanitizePdf(r.description), contentW);
+      descLines.forEach(line => { checkPage(6); doc.text(line, margin, y); y += 5; });
+      y += 6;
+    }
+
+    // --- Datenquellen ---
+    const rDs = (r.data_source_ids || []).map(did => datasources.find(d => d.id === did)).filter(Boolean);
+    if (rDs.length) {
+      checkPage(20);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(20, 61, 89);
+      doc.text('Datenquellen (' + rDs.length + ')', margin, y);
+      y += 8;
+
+      rDs.forEach(d => {
+        checkPage(12);
+        doc.setFillColor(248, 249, 252);
+        doc.roundedRect(margin, y - 3, contentW, 10, 2, 2, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(40, 50, 70);
+        doc.text(sanitizePdf(d.name), margin + 4, y + 3);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 115, 140);
+        doc.text(sanitizePdf((d.type ? d.type.toUpperCase() : '') + (d.owner ? ' | ' + d.owner : '')), margin + contentW - 4, y + 3, { align: 'right' });
+        y += 13;
+      });
+      y += 4;
+    }
+
+    // --- Nutzer & Relevanz ---
+    const rUa = (r.user_assignments || []).map(a => { const u = users.find(x => x.id === a.user_id); return u ? { ...u, relevance: a.relevance } : null; }).filter(Boolean);
+    if (rUa.length) {
+      checkPage(20);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(20, 61, 89);
+      doc.text('Nutzer & Relevanz (' + rUa.length + ')', margin, y);
+      y += 8;
+
+      rUa.forEach(u => {
+        checkPage(12);
+        doc.setFillColor(248, 249, 252);
+        doc.roundedRect(margin, y - 3, contentW, 10, 2, 2, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(40, 50, 70);
+        doc.text(sanitizePdf(u.name), margin + 4, y + 3);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 115, 140);
+        const relLabel = u.relevance === 'primär' ? 'Primaer' : u.relevance === 'sekundär' ? 'Sekundaer' : 'Info';
+        doc.text(sanitizePdf((ROLES[u.role]?.label || '') + ' | ' + relLabel), margin + contentW - 4, y + 3, { align: 'right' });
+        y += 13;
+      });
+      y += 4;
+    }
+
+    // --- Use Cases ---
+    const rUc = r.use_cases || [];
+    if (rUc.length) {
+      checkPage(20);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(20, 61, 89);
+      doc.text('Use Cases (' + rUc.length + ')', margin, y);
+      y += 8;
+
+      rUc.forEach((uc, idx) => {
+        checkPage(22);
+        doc.setFillColor(248, 249, 252);
+        const ucH = 18 + (uc.description ? 5 : 0);
+        doc.roundedRect(margin, y - 3, contentW, ucH, 2, 2, 'F');
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(40, 50, 70);
+        doc.text(sanitizePdf((idx + 1) + '. ' + (uc.title || 'Ohne Titel')), margin + 4, y + 3);
+
+        if (uc.question) {
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(80, 90, 110);
+          doc.text(sanitizePdf('Frage: ' + uc.question), margin + 4, y + 10);
+        }
+        if (uc.description) {
+          doc.setFontSize(8);
+          doc.setTextColor(110, 120, 140);
+          doc.text(sanitizePdf(uc.description).substring(0, 120), margin + 4, y + 15);
+        }
+        y += ucH + 4;
+      });
+      y += 4;
+    }
+
+    // --- Vollstaendigkeit ---
+    checkPage(25);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(20, 61, 89);
+    doc.text('Vollstaendigkeit', margin, y);
+    y += 8;
+
+    const checks = [
+      { l: 'Beschreibung', d: !!(r.description && r.description.trim()) },
+      { l: 'Datenquellen', d: (r.data_source_ids || []).length > 0 },
+      { l: 'Nutzer', d: (r.user_assignments || []).length > 0 },
+      { l: 'Use Cases', d: (r.use_cases || []).length > 0 },
+      { l: 'Aktualisierungszyklus', d: !!(r.refresh_cycle && r.refresh_cycle.trim()) }
+    ];
+
+    checks.forEach(c => {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(c.d ? 34 : 180, c.d ? 150 : 50, c.d ? 62 : 50);
+      doc.text((c.d ? '[x]' : '[ ]') + '  ' + sanitizePdf(c.l), margin + 4, y);
+      y += 6;
+    });
+
+    // --- Footer ---
+    y = pageH - 15;
+    doc.setDrawColor(200, 200, 210);
+    doc.line(margin, y - 5, margin + contentW, y - 5);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 160, 175);
+    doc.text('Haecker Kuechen - Tableau Intelligence Hub - Stammblatt - ' + new Date().toLocaleString('de-DE'), pageW / 2, y, { align: 'center' });
+
+    const fileName = 'Stammblatt_' + sanitizePdf(r.title || 'Report').replace(/\s+/g, '_').substring(0, 40) + '_' + new Date().toISOString().split('T')[0] + '.pdf';
+    doc.save(fileName);
+    showToast('Stammblatt heruntergeladen', 'success');
 
   } catch (err) {
-    console.error('PDF generation error:', err);
+    console.error('PDF Stammblatt error:', err);
     showToast('PDF-Fehler: ' + err.message, 'error');
   }
 }
@@ -1663,12 +1667,8 @@ function initUI() {
   // New report
   document.getElementById('btn-new-report').addEventListener('click', () => openReportModal(null));
 
-  // PDF export button
-  document.getElementById('btn-pdf-export').addEventListener('click', () => openPdfModal());
-
   // Modal overlays
   document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target.id === 'modal-overlay') closeModal(); });
-  document.getElementById('pdf-modal-overlay').addEventListener('click', e => { if (e.target.id === 'pdf-modal-overlay') closePdfModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
 
   initSpotlight();

@@ -863,25 +863,7 @@ img { max-width: 100%; display: block; }
   z-index: 10;
 }
 
-.report-card-link {
-  position: absolute;
-  top: 12px;
-  right: 80px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-xs);
-  background: var(--card2);
-  color: var(--muted);
-  opacity: 0;
-  transition: all var(--transition);
-  z-index: 2;
-}
-
-.report-card:hover .report-card-link { opacity: 1; }
-.report-card-link:hover { color: var(--accent); background: var(--accent-glow); }
+/* (report-card-link replaced by report-card-action-btn — see bottom of file) */
 
 .report-card-title {
   font-family: 'DM Sans', sans-serif;
@@ -2486,4 +2468,86 @@ textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .sidebar.collapsed .sidebar-user-email,
 .sidebar.collapsed .sidebar-logout-btn {
   display: none;
+}
+
+/* === JIRA BADGE === */
+.jira-badge {
+  display: inline-block;
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--blue, #3B82F6);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-bottom: 6px;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.jira-badge:hover {
+  background: rgba(59, 130, 246, 0.22);
+  color: var(--accent, #D4B039);
+}
+
+.jira-badge-table {
+  font-size: 10px;
+  padding: 1px 6px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* === REPORT CARD ACTION BUTTONS (Tableau, PDF, Edit, Delete) === */
+.report-card-action-btn {
+  background: none;
+  border: none;
+  color: var(--muted, #6B7FA3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-card-action-btn:hover {
+  color: var(--accent, #D4B039);
+  background: var(--accent-glow, rgba(212, 176, 57, 0.15));
+}
+
+/* Tableau link button styling */
+.tableau-link-btn {
+  color: var(--blue, #3B82F6);
+}
+
+.tableau-link-btn:hover {
+  color: #fff;
+  background: var(--blue, #3B82F6);
+}
+
+/* Table Tableau button */
+.table-actions .tableau-link-btn {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+/* PDF button on cards */
+.report-card-pdf {
+  color: var(--teal, #14B8A6);
+}
+
+.report-card-pdf:hover {
+  color: #fff;
+  background: var(--teal, #14B8A6);
+}
+
+/* Table PDF button */
+.table-action-btn[data-action="pdf"] {
+  color: var(--teal, #14B8A6);
+}
+
+.table-action-btn[data-action="pdf"]:hover {
+  color: #fff;
+  background: var(--teal, #14B8A6);
 }
