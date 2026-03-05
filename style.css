@@ -825,30 +825,48 @@ img { max-width: 100%; display: block; }
 }
 
 .report-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
-.report-card:hover .report-card-edit { opacity: 1; }
+.report-card:hover .report-card-actions-top { opacity: 1; }
 
-.report-card-edit {
+.report-card-actions-top {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: all var(--transition);
+}
+
+.report-card-edit, .report-card-delete {
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-xs);
   background: var(--card2);
   color: var(--muted);
-  opacity: 0;
+  border: none;
+  cursor: pointer;
   transition: all var(--transition);
 }
 
-.report-card-edit:hover { color: var(--accent); }
+.report-card-edit:hover { color: var(--accent); background: var(--hover-bg); }
+.report-card-delete:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
+.confirm-popover-card {
+  top: auto;
+  bottom: auto;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
 
 .report-card-link {
   position: absolute;
   top: 12px;
-  right: 48px;
+  right: 80px;
   width: 32px;
   height: 32px;
   display: flex;
@@ -1649,6 +1667,74 @@ textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 }
 
 .category-notes-textarea:focus { border-color: var(--accent); outline: none; }
+
+/* Category management UI */
+.category-actions-inline {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: 8px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.category-header:hover .category-actions-inline { opacity: 1; }
+
+.btn-icon-sm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-icon-sm:hover { background: var(--card2); color: var(--text); }
+.cat-delete-btn:hover { color: var(--danger) !important; }
+
+/* Icon picker grid */
+.icon-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 0;
+}
+.icon-pick-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.icon-pick-btn:hover { border-color: var(--muted); transform: scale(1.05); }
+.icon-pick-btn.active { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 0 2px var(--accent-glow); }
+
+/* Color picker grid */
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+}
+.color-pick-btn {
+  width: 32px;
+  height: 32px;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.color-pick-btn:hover { transform: scale(1.15); }
+.color-pick-btn.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--accent-glow); }
 
 /* === CONSOLIDATION === */
 .consolidation-banner {

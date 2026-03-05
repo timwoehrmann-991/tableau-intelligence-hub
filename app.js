@@ -16,16 +16,33 @@ const STORAGE_KEYS = {
   categoryNotes: 'category_notes',
   theme: 'tih_theme',
   rollout: 'rollout',
-  teams: 'teams'
+  teams: 'teams',
+  categories: 'categories'
 };
 
-const CATEGORIES = {
-  operativer_einkauf:      { label: 'Operativer Einkauf',      icon: '\u2699\uFE0F' },
-  strategischer_einkauf:   { label: 'Strategischer Einkauf',   icon: '\uD83C\uDFAF' },
-  controlling:             { label: 'Controlling',             icon: '\uD83D\uDCCA' },
-  gesamter_einkauf:        { label: 'Gesamter Einkauf',        icon: '\uD83C\uDFE2' },
-  angrenzende_abteilungen: { label: 'Angrenzende Abteilungen', icon: '\uD83D\uDD17' }
+const DEFAULT_CATEGORIES = {
+  operativer_einkauf:      { label: 'Operativer Einkauf',      icon: '\u2699\uFE0F', color: '#3B82F6' },
+  strategischer_einkauf:   { label: 'Strategischer Einkauf',   icon: '\uD83C\uDFAF', color: '#A855F7' },
+  controlling:             { label: 'Controlling',             icon: '\uD83D\uDCCA', color: '#14B8A6' },
+  gesamter_einkauf:        { label: 'Gesamter Einkauf',        icon: '\uD83C\uDFE2', color: '#D4B039' },
+  angrenzende_abteilungen: { label: 'Angrenzende Abteilungen', icon: '\uD83D\uDD17', color: '#F43F5E' }
 };
+
+const CATEGORY_ICONS = ['\u2699\uFE0F', '\uD83C\uDFAF', '\uD83D\uDCCA', '\uD83C\uDFE2', '\uD83D\uDD17', '\uD83D\uDCC8', '\uD83D\uDEE0\uFE0F', '\uD83D\uDCB0', '\uD83D\uDCE6', '\uD83D\uDD0D', '\uD83D\uDCA1', '\uD83C\uDF10', '\u2B50', '\uD83D\uDE80', '\uD83D\uDCC1'];
+const CATEGORY_COLORS = ['#3B82F6', '#A855F7', '#14B8A6', '#D4B039', '#F43F5E', '#F97316', '#EC4899', '#6366F1', '#0EA5E9', '#84CC16'];
+
+/** Get categories from Supabase or defaults */
+function getCategories() {
+  return getData(STORAGE_KEYS.categories) || JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+}
+
+/** Save categories to Supabase */
+function saveCategories(cats) {
+  saveData(STORAGE_KEYS.categories, cats);
+}
+
+/** Backwards-compatible CATEGORIES getter for existing code */
+let CATEGORIES = DEFAULT_CATEGORIES;
 
 const STATUSES = {
   idee:            { label: 'Idee',            css: 'badge-idee' },
@@ -64,14 +81,21 @@ const MAX_REPORTS_LIMIT = 30;
 
 /** Category colors as raw hex strings for inline CSS and charts */
 function getCatColor(cat) {
-  const map = {
+  const cats = getCategories();
+  if (cats[cat] && cats[cat].color) return cats[cat].color;
+  const defaultMap = {
     operativer_einkauf: '#3B82F6',
     strategischer_einkauf: '#A855F7',
     controlling: '#14B8A6',
     gesamter_einkauf: '#D4B039',
     angrenzende_abteilungen: '#F43F5E'
   };
-  return map[cat] || '#64748B';
+  return defaultMap[cat] || '#64748B';
+}
+
+/** Refresh the global CATEGORIES variable from cache */
+function refreshCategories() {
+  CATEGORIES = getCategories();
 }
 
 /** Runtime state for filters, toggles, charts */
@@ -182,6 +206,9 @@ async function seedIfEmpty() {
   saveData(STORAGE_KEYS.reports, reports);
   saveData(STORAGE_KEYS.categoryNotes, {});
 
+  // Seed categories
+  saveData(STORAGE_KEYS.categories, JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)));
+
   // Seed teams
   saveData(STORAGE_KEYS.teams, ['Einkauf', 'Strategischer Einkauf', 'Operativer Einkauf', 'Controlling', 'Produktmanagement']);
 
@@ -216,6 +243,7 @@ function initTheme() {
 /* === ROUTER === */
 
 function navigateTo(viewName) {
+  refreshCategories();
   document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
   const target = document.getElementById(`view-${viewName}`);
   if (target) target.classList.add('view-active');
@@ -376,6 +404,7 @@ function renderReports() {
 
   el.querySelectorAll('.view-toggle-btn').forEach(b => b.addEventListener('click', () => { state.reportsViewMode = b.dataset.mode; renderReports(); }));
   el.querySelectorAll('.report-card-edit').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); openReportModal(b.dataset.id); }); });
+  el.querySelectorAll('.report-card-delete').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); showDeleteConfirmCard(e.currentTarget, b.dataset.id); }); });
   el.querySelectorAll('.report-card').forEach(c => c.addEventListener('click', () => {
     const url = c.dataset.url;
     if (url && url.trim()) { window.open(url, '_blank', 'noopener'); }
@@ -403,7 +432,10 @@ function renderReportCard(r, users) {
   const hasUrl = r.tableau_url && r.tableau_url.trim();
   return `<div class="report-card" data-id="${r.id}" ${hasUrl ? `data-url="${r.tableau_url}"` : ''} style="border-left-color:${getCatColor(r.category)}">
     ${hasUrl ? `<a class="report-card-link" href="${r.tableau_url}" target="_blank" rel="noopener" title="In Tableau öffnen" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ''}
-    <button class="report-card-edit" data-id="${r.id}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+    <div class="report-card-actions-top">
+      <button class="report-card-edit" data-id="${r.id}" type="button" title="Bearbeiten"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="report-card-delete" data-id="${r.id}" type="button" title="Löschen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+    </div>
     <div class="report-card-title">${r.title}</div>
     <div class="report-card-desc">${r.description || 'Keine Beschreibung'}</div>
     <div class="report-card-footer">
@@ -587,21 +619,102 @@ function showEditDsModal(dsId) {
 /* === RENDER: CATEGORIES === */
 
 function renderCategories() {
+  refreshCategories();
   const reports = getData(STORAGE_KEYS.reports) || [];
   const notes = getData(STORAGE_KEYS.categoryNotes) || {};
   const users = getData(STORAGE_KEYS.users) || [];
+  const cats = getCategories();
+  const catKeys = Object.keys(cats);
 
   const el = document.getElementById('categories-content');
-  el.innerHTML = `<div class="view-header"><h1 class="view-title">Kategorien</h1><p class="view-subtitle">5 Einkaufskategorien mit Ziel je ${CATEGORY_TARGET} Auswertungen</p></div>
-  ${Object.entries(CATEGORIES).map(([key, cat]) => {
+  el.innerHTML = `<div class="view-header"><h1 class="view-title">Kategorien</h1><p class="view-subtitle">${catKeys.length} Kategorien mit Ziel je ${CATEGORY_TARGET} Auswertungen</p></div>
+  <button class="btn btn-primary btn-sm" id="btn-add-category" type="button" style="margin-bottom:20px">+ Neue Kategorie</button>
+  ${catKeys.map(key => {
+    const cat = cats[key];
     const cr = reports.filter(r => r.category === key);
     const prog = Math.min((cr.length / CATEGORY_TARGET) * 100, 100);
-    return `<div class="category-section" data-cat="${key}"><div class="category-header"><div class="category-color-bar" style="background:${getCatColor(key)}"></div><span class="category-icon">${cat.icon}</span><span class="category-name">${cat.label}</span><span class="category-count">${cr.length} Auswertungen</span><div class="category-progress"><div class="category-progress-bar" style="width:${prog}%;background:${getCatColor(key)}"></div></div><svg class="category-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="category-body">${cr.length ? `<div class="card-grid">${cr.map(r => renderReportCard(r, users)).join('')}</div>` : '<div class="empty-state" style="padding:30px"><div class="empty-state-title">Keine Auswertungen</div></div>'}<div class="category-notes-area"><div class="category-notes-label">Strategie-Notizen</div><textarea class="category-notes-textarea" data-cat="${key}" placeholder="Strategische Notizen\u2026">${notes[key] || ''}</textarea></div></div></div>`;
+    return `<div class="category-section" data-cat="${key}"><div class="category-header"><div class="category-color-bar" style="background:${cat.color || getCatColor(key)}"></div><span class="category-icon">${cat.icon}</span><span class="category-name">${cat.label}</span><span class="category-count">${cr.length} Auswertungen</span><div class="category-progress"><div class="category-progress-bar" style="width:${prog}%;background:${cat.color || getCatColor(key)}"></div></div><div class="category-actions-inline"><button class="btn-icon-sm cat-edit-btn" data-cat-key="${key}" type="button" title="Bearbeiten"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon-sm cat-delete-btn" data-cat-key="${key}" type="button" title="L\u00F6schen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div><svg class="category-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="category-body">${cr.length ? `<div class="card-grid">${cr.map(r => renderReportCard(r, users)).join('')}</div>` : '<div class="empty-state" style="padding:30px"><div class="empty-state-title">Keine Auswertungen</div></div>'}<div class="category-notes-area"><div class="category-notes-label">Strategie-Notizen</div><textarea class="category-notes-textarea" data-cat="${key}" placeholder="Strategische Notizen\u2026">${notes[key] || ''}</textarea></div></div></div>`;
   }).join('')}`;
 
-  el.querySelectorAll('.category-header').forEach(h => h.addEventListener('click', () => h.closest('.category-section').classList.toggle('expanded')));
+  el.querySelectorAll('.category-header').forEach(h => h.addEventListener('click', (e) => { if (e.target.closest('.cat-edit-btn') || e.target.closest('.cat-delete-btn')) return; h.closest('.category-section').classList.toggle('expanded'); }));
   el.querySelectorAll('.category-notes-textarea').forEach(ta => ta.addEventListener('blur', () => { const n = getData(STORAGE_KEYS.categoryNotes) || {}; n[ta.dataset.cat] = ta.value; saveData(STORAGE_KEYS.categoryNotes, n); }));
   el.querySelectorAll('.report-card').forEach(c => c.addEventListener('click', () => openReportModal(c.dataset.id)));
+  el.querySelectorAll('.report-card-edit').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); openReportModal(b.dataset.id); }); });
+  el.querySelectorAll('.report-card-delete').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); showDeleteConfirmCard(e.currentTarget, b.dataset.id); }); });
+
+  // Add category button
+  document.getElementById('btn-add-category').addEventListener('click', () => showCategoryForm(null));
+
+  // Edit category
+  el.querySelectorAll('.cat-edit-btn').forEach(b => { b.addEventListener('click', (e) => { e.stopPropagation(); showCategoryForm(b.dataset.catKey); }); });
+
+  // Delete category
+  el.querySelectorAll('.cat-delete-btn').forEach(b => { b.addEventListener('click', (e) => { e.stopPropagation(); deleteCategoryConfirm(b.dataset.catKey); }); });
+}
+
+/** Show modal to add or edit a category */
+function showCategoryForm(editKey) {
+  const cats = getCategories();
+  const isEdit = !!editKey;
+  const cat = isEdit ? (cats[editKey] || { label: '', icon: '\uD83D\uDCC1', color: '#3B82F6' }) : { label: '', icon: '\uD83D\uDCC1', color: '#3B82F6' };
+
+  const m = document.getElementById('modal-container');
+  m.innerHTML = `<div class="modal-header"><div class="modal-title">${isEdit ? 'Kategorie bearbeiten' : 'Neue Kategorie'}</div><button class="modal-close" id="cat-modal-close" type="button">\u00D7</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="cat-label" value="${cat.label}" placeholder="Kategoriename"></div>
+    <div class="form-group"><label class="form-label">Icon</label><div class="icon-picker" id="icon-picker">${CATEGORY_ICONS.map(ic => `<button class="icon-pick-btn ${cat.icon === ic ? 'active' : ''}" data-icon="${ic}" type="button">${ic}</button>`).join('')}</div><input type="hidden" id="cat-icon" value="${cat.icon}"></div>
+    <div class="form-group"><label class="form-label">Farbe</label><div class="color-picker" id="color-picker">${CATEGORY_COLORS.map(c => `<button class="color-pick-btn ${cat.color === c ? 'active' : ''}" data-color="${c}" type="button" style="background:${c}"></button>`).join('')}</div><input type="hidden" id="cat-color" value="${cat.color}"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" id="cat-cancel" type="button">Abbrechen</button><button class="btn btn-primary" id="cat-save" type="button">Speichern</button></div>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+
+  m.querySelectorAll('.icon-pick-btn').forEach(b => b.addEventListener('click', () => { m.querySelectorAll('.icon-pick-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); document.getElementById('cat-icon').value = b.dataset.icon; }));
+  m.querySelectorAll('.color-pick-btn').forEach(b => b.addEventListener('click', () => { m.querySelectorAll('.color-pick-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); document.getElementById('cat-color').value = b.dataset.color; }));
+
+  m.querySelector('#cat-modal-close').addEventListener('click', closeModal);
+  m.querySelector('#cat-cancel').addEventListener('click', closeModal);
+  m.querySelector('#cat-save').addEventListener('click', () => {
+    const label = document.getElementById('cat-label').value.trim();
+    if (!label) { showToast('Name ist erforderlich', 'warning'); return; }
+    const icon = document.getElementById('cat-icon').value;
+    const color = document.getElementById('cat-color').value;
+
+    const allCats = getCategories();
+    const key = isEdit ? editKey : label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_\u00E4\u00F6\u00FC\u00DF]/g, '').replace(/\u00E4/g, 'ae').replace(/\u00F6/g, 'oe').replace(/\u00FC/g, 'ue').replace(/\u00DF/g, 'ss').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'cat_' + Date.now();
+
+    if (!isEdit && allCats[key]) {
+      showToast('Kategorie mit diesem Namen existiert bereits', 'warning');
+      return;
+    }
+
+    allCats[key] = { label, icon, color };
+    saveCategories(allCats);
+    refreshCategories();
+    closeModal();
+    renderCategories();
+    showToast(isEdit ? 'Kategorie aktualisiert' : 'Kategorie erstellt', 'success');
+  });
+}
+
+/** Confirm and delete a category (only if no reports assigned) */
+function deleteCategoryConfirm(catKey) {
+  const cats = getCategories();
+  const cat = cats[catKey];
+  if (!cat) return;
+  const reports = getData(STORAGE_KEYS.reports) || [];
+  const count = reports.filter(r => r.category === catKey).length;
+  if (count > 0) {
+    showToast('Kategorie "' + cat.label + '" hat noch ' + count + ' Auswertungen. Bitte erst verschieben.', 'warning');
+    return;
+  }
+  if (confirm('Kategorie "' + cat.label + '" wirklich l\u00F6schen?')) {
+    delete cats[catKey];
+    saveCategories(cats);
+    refreshCategories();
+    renderCategories();
+    showToast('Kategorie gel\u00F6scht', 'success');
+  }
 }
 
 /* === RENDER: CONSOLIDATION === */
@@ -653,6 +766,7 @@ function renderConsolidation() {
 /* === MODAL (create/edit report) === */
 
 function openReportModal(reportId) {
+  refreshCategories();
   const reports = getData(STORAGE_KEYS.reports) || [];
   const datasources = getData(STORAGE_KEYS.datasources) || [];
   const users = getData(STORAGE_KEYS.users) || [];
@@ -745,6 +859,7 @@ function closeAllModals() {
 /* === PDF EXPORT === */
 
 function openPdfModal() {
+  refreshCategories();
   const reports = getData(STORAGE_KEYS.reports) || [];
   const users = getData(STORAGE_KEYS.users) || [];
   const datasources = getData(STORAGE_KEYS.datasources) || [];
@@ -802,6 +917,26 @@ function openPdfModal() {
 
 /** Generate and download a PDF using jsPDF */
 function generatePdf(reports, users, datasources, options = {}) {
+  try {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      showToast('PDF-Bibliothek wird geladen, bitte erneut versuchen…', 'warning');
+      // Try loading jsPDF dynamically
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
+      s.onload = () => showToast('PDF-Bibliothek geladen. Bitte erneut klicken.', 'success');
+      document.head.appendChild(s);
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const orient = options.orientation || 'portrait';
+    const isBW = options.colorMode === 'bw';
+    const doc = new jsPDF({ orientation: orient, unit: 'mm', format: 'a4' });
+  } catch (err) {
+    console.error('PDF init error:', err);
+    showToast('PDF-Fehler: ' + err.message, 'error');
+    return;
+  }
+
   const { jsPDF } = window.jspdf;
   const orient = options.orientation || 'portrait';
   const isBW = options.colorMode === 'bw';
@@ -818,6 +953,7 @@ function generatePdf(reports, users, datasources, options = {}) {
   }
 
   function hexToRgb(hex) {
+    if (!hex || hex.length < 7) return isBW ? [128, 128, 128] : [100, 116, 139];
     const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
     return isBW ? toGray(r, g, b) : [r, g, b];
   }
@@ -826,6 +962,16 @@ function generatePdf(reports, users, datasources, options = {}) {
     const v = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
     return [v, v, v];
   }
+
+  /** Truncate text to fit within maxWidth mm */
+  function truncText(text, maxWidth, fontSize) {
+    doc.setFontSize(fontSize);
+    if (doc.getTextWidth(text) <= maxWidth) return text;
+    while (text.length > 0 && doc.getTextWidth(text + '…') > maxWidth) text = text.slice(0, -1);
+    return text + '…';
+  }
+
+  try {
 
   // Title page
   if (isBW) { doc.setFillColor(40, 40, 40); } else { doc.setFillColor(20, 61, 89); }
@@ -839,14 +985,14 @@ function generatePdf(reports, users, datasources, options = {}) {
   doc.setFontSize(16);
   doc.setFont('helvetica', 'normal');
   if (isBW) { doc.setTextColor(180, 180, 180); } else { doc.setTextColor(200, 210, 230); }
-  doc.text('Häcker Küchen — Einkaufsauswertungen', pageW / 2, pageH * 0.34 + 15, { align: 'center' });
+  doc.text('Haecker Kuechen \u2014 Einkaufsauswertungen', pageW / 2, pageH * 0.34 + 15, { align: 'center' });
 
   doc.setFontSize(12);
   if (isBW) { doc.setTextColor(140, 140, 140); } else { doc.setTextColor(160, 175, 200); }
-  doc.text(`${reports.length} Auswertungen · Exportiert am ${new Date().toLocaleDateString('de-DE')}`, pageW / 2, pageH * 0.34 + 30, { align: 'center' });
+  doc.text(reports.length + ' Auswertungen \u00B7 Exportiert am ' + new Date().toLocaleDateString('de-DE'), pageW / 2, pageH * 0.34 + 30, { align: 'center' });
 
   doc.setFontSize(10);
-  doc.text(`${orient === 'landscape' ? 'Querformat' : 'Hochformat'} · ${isBW ? 'Schwarz-Weiß' : 'Farbe'}`, pageW / 2, pageH * 0.34 + 45, { align: 'center' });
+  doc.text((orient === 'landscape' ? 'Querformat' : 'Hochformat') + ' \u00B7 ' + (isBW ? 'Schwarz-Weiss' : 'Farbe'), pageW / 2, pageH * 0.34 + 45, { align: 'center' });
 
   // Summary page
   doc.addPage();
@@ -895,8 +1041,8 @@ function generatePdf(reports, users, datasources, options = {}) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 70, 90);
-    doc.text(`${cat.label}`, margin, y);
-    doc.text(`${count}`, margin + contentW, y, { align: 'right' });
+    doc.text(sanitizePdf(cat.label), margin, y);
+    doc.text(String(count), margin + contentW, y, { align: 'right' });
 
     doc.setFillColor(230, 233, 240);
     doc.roundedRect(margin, y + 2, contentW, 3, 1, 1, 'F');
@@ -926,7 +1072,7 @@ function generatePdf(reports, users, datasources, options = {}) {
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(20, 30, 50);
-    doc.text(r.title, margin + 8, y + 8);
+    doc.text(truncText(sanitizePdf(r.title || ''), contentW - 12, 11), margin + 8, y + 8);
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
@@ -935,13 +1081,13 @@ function generatePdf(reports, users, datasources, options = {}) {
     const catLabel = CATEGORIES[r.category]?.label || '';
     const statusLabel = STATUSES[r.status]?.label || '';
     const prioLabel = PRIORITIES[r.priority]?.label || '';
-    doc.text(`${catLabel} · ${statusLabel} · Priorität: ${prioLabel} · Score: ${getCompleteness(r)}/5`, margin + 8, y + 15);
+    doc.text(sanitizePdf(catLabel + ' - ' + statusLabel + ' - Prioritaet: ' + prioLabel + ' - Score: ' + getCompleteness(r) + '/5'), margin + 8, y + 15);
 
-    const assignedNames = (r.user_assignments || []).map(a => { const u = users.find(x => x.id === a.user_id); return u ? `${u.name} (${a.relevance})` : ''; }).filter(Boolean).join(', ');
-    doc.text(`Nutzer: ${assignedNames || 'Keine'}`, margin + 8, y + 21);
+    const assignedNames = (r.user_assignments || []).map(a => { const u = users.find(x => x.id === a.user_id); return u ? u.name + ' (' + a.relevance + ')' : ''; }).filter(Boolean).join(', ');
+    doc.text(sanitizePdf('Nutzer: ' + (assignedNames || 'Keine')), margin + 8, y + 21);
 
     const dsNames = (r.data_source_ids || []).map(did => { const d = datasources.find(x => x.id === did); return d ? d.name : ''; }).filter(Boolean).join(', ');
-    doc.text(`Datenquellen: ${dsNames || 'Keine'}`, margin + 8, y + 27);
+    doc.text(sanitizePdf('Datenquellen: ' + (dsNames || 'Keine')), margin + 8, y + 27);
 
     y += 36;
   });
@@ -953,11 +1099,28 @@ function generatePdf(reports, users, datasources, options = {}) {
   y += 8;
   doc.setFontSize(8);
   doc.setTextColor(150, 160, 175);
-  doc.text(`Häcker Küchen · Tableau Intelligence Hub · ${new Date().toLocaleString('de-DE')}`, pageW / 2, y, { align: 'center' });
+  doc.text('Haecker Kuechen - Tableau Intelligence Hub - ' + new Date().toLocaleString('de-DE'), pageW / 2, y, { align: 'center' });
 
-  doc.save(`Haecker_Auswertungen_${new Date().toISOString().split('T')[0]}.pdf`);
+  doc.save('Haecker_Auswertungen_' + new Date().toISOString().split('T')[0] + '.pdf');
   showToast('PDF heruntergeladen', 'success');
   closePdfModal();
+
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    showToast('PDF-Fehler: ' + err.message, 'error');
+  }
+}
+
+/** Sanitize text for jsPDF (replace special chars the default font can't render) */
+function sanitizePdf(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/ä/g, 'ae').replace(/Ä/g, 'Ae')
+    .replace(/ö/g, 'oe').replace(/Ö/g, 'Oe')
+    .replace(/ü/g, 'ue').replace(/Ü/g, 'Ue')
+    .replace(/ß/g, 'ss')
+    .replace(/·/g, '-').replace(/—/g, '-').replace(/–/g, '-')
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
 }
 
 /* === FILTERS HELPER === */
@@ -1033,6 +1196,27 @@ function showToast(msg, type = 'success') {
 }
 
 /* === DELETE CONFIRM === */
+
+function showDeleteConfirmCard(btn, reportId) {
+  document.querySelectorAll('.confirm-popover').forEach(p => p.remove());
+  const card = btn.closest('.report-card') || btn.parentElement;
+  card.style.position = 'relative';
+  const pop = document.createElement('div');
+  pop.className = 'confirm-popover confirm-popover-card';
+  pop.innerHTML = `<div class="confirm-popover-text">Wirklich löschen?</div><div class="confirm-popover-actions"><button class="btn btn-ghost btn-sm cn" type="button">Nein</button><button class="btn btn-danger btn-sm cy" type="button">Ja</button></div>`;
+  card.appendChild(pop);
+  pop.querySelector('.cn').addEventListener('click', e => { e.stopPropagation(); pop.remove(); });
+  pop.querySelector('.cy').addEventListener('click', e => {
+    e.stopPropagation();
+    let all = getData(STORAGE_KEYS.reports) || [];
+    all = all.filter(r => r.id !== reportId);
+    saveData(STORAGE_KEYS.reports, all);
+    updateProgressPill(); showToast('Gelöscht', 'success'); pop.remove();
+    const renderers = { dashboard: renderDashboard, reports: renderReports, users: renderUsers, datasources: renderDatasources, categories: renderCategories, rollout: renderRollout, consolidation: renderConsolidation };
+    if (renderers[state.currentView]) renderers[state.currentView]();
+  });
+  setTimeout(() => { const handler = e => { if (!pop.contains(e.target) && e.target !== btn) { pop.remove(); document.removeEventListener('click', handler); } }; document.addEventListener('click', handler); }, 0);
+}
 
 function showDeleteConfirm(btn, reportId) {
   document.querySelectorAll('.confirm-popover').forEach(p => p.remove());
